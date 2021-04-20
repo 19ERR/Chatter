@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Chatter</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Parola</string>
+    <string name="login_login">Autentificare</string>
 </resources>
