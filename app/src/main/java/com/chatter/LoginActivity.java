@@ -95,6 +95,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         String text = "Utilizatorul este autentificat!";
         Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         toast.show();
+
+        Intent intent = new Intent(this, ConversationsListActivity.class);
+        intent.putExtra("account", account);
+        startActivity(intent);
     }
 
     private void userNotAuthenticated(){

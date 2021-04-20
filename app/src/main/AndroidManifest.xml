@@ -9,6 +9,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Chatter">
+        <activity
+            android:name=".ConversationsListActivity"
+            android:label="@string/title_activity_conversations_list"
+            android:theme="@style/Theme.Chatter.NoActionBar"></activity>
         <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
