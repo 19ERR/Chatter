@@ -10,10 +10,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Chatter">
         <activity
-            android:name=".ConversationsListActivity"
-            android:label="@string/title_activity_conversations_list"
+            android:name=".activities.ContactListActivity"
+            android:label="@string/title_activity_contact_list"
             android:theme="@style/Theme.Chatter.NoActionBar"></activity>
-        <activity android:name=".LoginActivity">
+        <activity
+            android:name=".activities.ConversationsListActivity"
+            android:label="@string/title_activity_conversations_list"
+            android:theme="@style/Theme.Chatter.NoActionBar" />
+        <activity android:name=".activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

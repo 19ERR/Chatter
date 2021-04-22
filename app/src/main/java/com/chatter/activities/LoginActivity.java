@@ -1,25 +1,23 @@
-package com.chatter;
+package com.chatter.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.Auth;
+import com.chatter.R;
+import com.chatter.activities.ConversationsListActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.Task;
-
-import java.net.DatagramSocket;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int RC_SIGN_IN = 9001;
@@ -30,7 +28,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Set the dimensions of the sign-in button.
         SignInButton signInButton = findViewById(R.id.google_sign_in_button);
         signInButton.setSize(SignInButton.SIZE_STANDARD);
         signInButton.setOnClickListener(this);
@@ -39,8 +36,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-
     }
 
     protected void onStart() {
@@ -79,9 +74,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+
+            // adauga in baza de date
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference dbRef = database.getReference("users");
+            dbRef.child(account.getId()).child("email").setValue(account.getEmail());
+
             userIsAuthenticated(account);
         } catch (ApiException e) {
-            //Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
             userNotAuthenticated();
         }
     }
@@ -92,7 +92,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void userIsAuthenticated(GoogleSignInAccount account){
-        String text = "Utilizatorul este autentificat!";
+        String text = "Succes!";
         Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         toast.show();
 
@@ -102,7 +102,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void userNotAuthenticated(){
-        String text = "Va rog sa va autentificati!";
+        String text = "Fail!";
         Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         toast.show();
     }

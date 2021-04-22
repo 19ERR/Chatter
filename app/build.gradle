@@ -31,10 +31,12 @@ android {
 }
 
 dependencies {
+    // Import the BoM for the Firebase platform
     implementation platform('com.google.firebase:firebase-bom:27.0.0')
+
+    implementation 'com.google.firebase:firebase-database'
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.firebaseui:firebase-ui-auth:6.4.0'
-    implementation platform('com.google.firebase:firebase-bom:27.0.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
     implementation 'androidx.appcompat:appcompat:1.1.0'
