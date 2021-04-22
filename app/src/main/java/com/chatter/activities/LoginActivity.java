@@ -80,6 +80,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             DatabaseReference dbRef = database.getReference("users");
             dbRef.child(account.getId()).child("email").setValue(account.getEmail());
 
+
             userIsAuthenticated(account);
         } catch (ApiException e) {
             userNotAuthenticated();

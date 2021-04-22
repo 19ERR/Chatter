@@ -1,8 +1,10 @@
 package com.chatter.activities;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 
 import com.chatter.R;
+import com.chatter.dialogs.AddContactDialog;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
@@ -21,7 +23,9 @@ import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 public class ContactListActivity extends AppCompatActivity {
 
@@ -60,4 +64,17 @@ public class ContactListActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.menu_contact_list, menu);
         return true;
     }
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch(item.getItemId()){
+            case R.id.menuAddContact:
+                AddContactDialog cdd=new AddContactDialog(this);
+                cdd.show();
+                break;
+        }
+        return true;
+    }
+
 }
