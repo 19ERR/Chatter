@@ -36,7 +36,6 @@ public class AddContactDialog extends Dialog implements
 
     public AddContactDialog(Activity a, User currentUser) {
         super(a);
-        // TODO Auto-generated constructor stub
         this.c = a;
         this.currentUser = currentUser;
     }

@@ -4,31 +4,18 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.chatter.R;
+import com.chatter.classes.Contact;
 import com.chatter.classes.User;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.os.Parcelable;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-
-import java.io.Console;
-import java.util.logging.Logger;
 
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
@@ -63,7 +50,13 @@ public class ConversationsListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_ADD_CONVERSATION) {
-            //du-te la conversatia creata
+            Contact contact = data.getParcelableExtra("contact");
+
+            Intent conversationIntent = new Intent(this, ConversationActivity.class);
+            conversationIntent.putExtra("currentUser", currentUser);
+            conversationIntent.putExtra("currentUser", currentUser);///TODO: de pus obiectul conversatiei create
+            startActivity(conversationIntent);
+            Toast.makeText(this,contact.getEmail(),Toast.LENGTH_LONG).show();
         }
     }
 

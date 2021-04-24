@@ -5,6 +5,7 @@ import android.icu.text.Edits;
 import android.os.Bundle;
 
 import com.chatter.R;
+import com.chatter.adapters.ContactsAdapter;
 import com.chatter.classes.Contact;
 import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
@@ -19,11 +20,15 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.Adapter;
 
 import android.util.Log;
 import android.view.Menu;
@@ -51,7 +56,10 @@ public class ContactListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Contacts");
         }
 
-        //TODO: afisare contacte
+        RecyclerView recyclerView = findViewById(R.id.recycle_contact_list);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(new ContactsAdapter(currentUser.getContacts(), this));
     }
 
     @Override
