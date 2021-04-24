@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.chatter.R;
-import com.chatter.activities.ConversationsListActivity;
 import com.chatter.classes.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -26,8 +25,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-
-import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int RC_SIGN_IN = 9001;
@@ -108,17 +105,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    DataSnapshot user = snapshot.getChildren().iterator().next();
-                    currentUser = user.getValue(User.class);
+                    DataSnapshot userSnapshot = snapshot.getChildren().iterator().next();
+                    currentUser = userSnapshot.getValue(User.class);
+                    assert currentUser != null;
+                    currentUser.setKey(userSnapshot.getKey());
                 }
                 else {
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference dbRef = database.getReference("users").push();
                     dbRef.child("email").setValue(account.getEmail());
+
                     currentUser = new User(account.getEmail());
+                    currentUser.setKey(dbRef.getKey());
                 }
 
-                intent.putExtra("currentUser", (Parcelable) currentUser);
+                intent.putExtra("currentUser", currentUser);
                 startActivity(intent);
             }
 

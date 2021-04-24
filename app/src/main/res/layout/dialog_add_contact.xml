@@ -34,10 +34,10 @@
         android:textColor="#5DBCD2"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_text_email_contact_nou" />
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_new_contact_email" />
 
     <EditText
-        android:id="@+id/edit_text_email_contact_nou"
+        android:id="@+id/edit_text_new_contact_email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="103dp"
@@ -61,6 +61,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.176"
         app:layout_constraintStart_toEndOf="@+id/button_add_contact"
-        app:layout_constraintTop_toBottomOf="@+id/edit_text_email_contact_nou" />
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_new_contact_email" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

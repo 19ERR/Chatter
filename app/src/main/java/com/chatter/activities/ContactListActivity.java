@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import com.chatter.R;
 import com.chatter.classes.Contact;
+import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -36,36 +37,21 @@ import java.util.List;
 import java.util.Objects;
 
 public class ContactListActivity extends AppCompatActivity {
-    private ArrayList<Contact> contacts = new ArrayList<>();
-    private GoogleSignInAccount account;
+    public User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_list);
-        account =  GoogleSignIn.getLastSignedInAccount(this);
+        currentUser = getIntent().getParcelableExtra("currentUser");
+
         Toolbar toolbar = findViewById(R.id.toolbar_contact_list);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Contacte");
+            getSupportActionBar().setTitle("Contacts");
         }
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference dbRef = database.getReference("users");
-
-        dbRef.child(Objects.requireNonNull(account.getId())).child("contacts").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (!task.isSuccessful()) {
-                    Log.e("firebase", "Error getting data", task.getException());
-                }
-                else {
-                    String rezultat = String.valueOf(Objects.requireNonNull(task.getResult()).getValue());
-                    Log.e("firebase", rezultat, task.getException());
-                }
-            }
-        });
-
+        //TODO: afisare contacte
     }
 
     @Override
@@ -80,7 +66,7 @@ public class ContactListActivity extends AppCompatActivity {
 
         switch(item.getItemId()){
             case R.id.menuAddContact:
-                AddContactDialog cdd=new AddContactDialog(this);
+                AddContactDialog cdd=new AddContactDialog(this, this.currentUser);
                 cdd.show();
                 break;
         }

@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.Parcelable;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -45,6 +46,7 @@ public class ConversationsListActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent newConversationIntent = new Intent(v.getContext(), ContactListActivity.class);
+                newConversationIntent.putExtra("currentUser", currentUser);
                 startActivityForResult(newConversationIntent, RC_ADD_CONVERSATION);
             }
         });
