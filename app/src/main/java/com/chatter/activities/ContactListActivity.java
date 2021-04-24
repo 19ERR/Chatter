@@ -1,10 +1,14 @@
 package com.chatter.activities;
 
 import android.annotation.SuppressLint;
+import android.icu.text.Edits;
 import android.os.Bundle;
 
 import com.chatter.R;
+import com.chatter.classes.Contact;
 import com.chatter.dialogs.AddContactDialog;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
@@ -27,35 +31,41 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 public class ContactListActivity extends AppCompatActivity {
+    private ArrayList<Contact> contacts = new ArrayList<>();
+    private GoogleSignInAccount account;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_list);
+        account =  GoogleSignIn.getLastSignedInAccount(this);
+        Toolbar toolbar = findViewById(R.id.toolbar_contact_list);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Contacte");
+        }
 
-        // adauga in baza de date
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference dbRef = database.getReference("users");
 
-        dbRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+        dbRef.child(Objects.requireNonNull(account.getId())).child("contacts").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (!task.isSuccessful()) {
                     Log.e("firebase", "Error getting data", task.getException());
                 }
                 else {
-                    String rezultat = String.valueOf(task.getResult().getValue());
-                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                    String rezultat = String.valueOf(Objects.requireNonNull(task.getResult()).getValue());
+                    Log.e("firebase", rezultat, task.getException());
                 }
             }
         });
 
-        Toolbar toolbar = findViewById(R.id.toolbar_contact_list);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Contacte");
-        }
     }
 
     @Override

@@ -4,9 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.chatter.R;
+import com.chatter.classes.User;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -16,15 +26,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import java.io.Console;
+import java.util.logging.Logger;
+
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
     private Toolbar toolbar;
+    User currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations_list);
 
-        GoogleSignInAccount account = getIntent().getParcelableExtra("account");
+        currentUser = getIntent().getParcelableExtra("currentUser");
 
         FloatingActionButton button = findViewById(R.id.button_add_conversation);
         button.setOnClickListener(new View.OnClickListener() {

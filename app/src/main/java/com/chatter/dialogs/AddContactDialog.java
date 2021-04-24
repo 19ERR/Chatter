@@ -11,8 +11,13 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.chatter.R;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+
+import java.util.Objects;
 
 public class AddContactDialog extends Dialog implements
         android.view.View.OnClickListener {
@@ -44,8 +49,11 @@ public class AddContactDialog extends Dialog implements
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_add_contact:
-                addContact(v);
-                c.finish();
+                if(addContact(v)) {
+                    Toast.makeText(v.getContext(), "Adaugat cu succes!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(v.getContext(), "Contactul nu a putut fi adaugat!", Toast.LENGTH_SHORT).show();
+                }
                 break;
             case R.id.button_cancel_add_contact:
                 dismiss();
@@ -56,16 +64,18 @@ public class AddContactDialog extends Dialog implements
         dismiss();
     }
 
-    private void addContact(View v) {
+    private boolean addContact(View v) {
         EditText editTextEmail = findViewById(R.id.edit_text_email_contact_nou);
-        String email = editTextEmail.getText().toString();
+        String email_contact_nou = editTextEmail.getText().toString();
 
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(v.getContext());
         // adauga in baza de date
-        //FirebaseDatabase database = FirebaseDatabase.getInstance();
-        //DatabaseReference dbRef = database.getReference("users");
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference dbRef = database.getReference("users");
 
-        //dbRef.child(account.getId()).child("email").setValue(account.getEmail());
-
-        Toast.makeText(v.getContext(), email, Toast.LENGTH_SHORT).show();
+        assert account != null;
+        dbRef.child(Objects.requireNonNull(account.getId())).child("contacts").push().setValue(email_contact_nou);
+        //TODO: VERIFICA DACA EXISTA CONTUL
+        return true;
     }
 }
