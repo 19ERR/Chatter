@@ -5,11 +5,16 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import com.google.firebase.database.Exclude;
+
 import java.util.Iterator;
 
 public class Contact implements Parcelable {
 
     private String email;
+    private String key;
+    @Exclude
+    private boolean selected = false;
 
     protected Contact(Parcel in) {
         email = in.readString();
@@ -47,7 +52,6 @@ public class Contact implements Parcelable {
         this.key = key;
     }
 
-    private String key;
 
     public String getEmail() {
         return email;
@@ -64,4 +68,8 @@ public class Contact implements Parcelable {
         this.email = email;
     }
 
+    public void select(){
+        this.selected = !this.selected;
+    }
+    public boolean isSelected(){return selected;}
 }

@@ -1,258 +1,99 @@
 package com.chatter.classes;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.firebase.database.Exclude;
+
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 
-public class Conversation {
+public class Conversation implements Parcelable {
+    @Exclude
     private String key;
     private String name;
-    private List<Contact> participants = new List<Contact>() {
+    private List<Contact> participants;
+
+    public List<Contact> getParticipants() {
+        return participants;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    private List<Message> messages;
+
+    public void setParticipants(List<Contact> participants) {
+        this.participants = participants;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
+    }
+
+
+    public Conversation(String name, List<Contact> participants){
+        this.name = name;
+        this.participants = participants;
+    }
+
+
+    private Conversation(){}
+
+    protected Conversation(Parcel in) {
+        key = in.readString();
+        name = in.readString();
+        participants = in.createTypedArrayList(Contact.CREATOR);
+        messages = in.createTypedArrayList(Message.CREATOR);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(key);
+        dest.writeString(name);
+        dest.writeTypedList(participants);
+        dest.writeTypedList(messages);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Conversation> CREATOR = new Creator<Conversation>() {
         @Override
-        public int size() {
-            return 0;
+        public Conversation createFromParcel(Parcel in) {
+            return new Conversation(in);
         }
 
         @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public boolean contains(@Nullable Object o) {
-            return false;
-        }
-
-        @NonNull
-        @Override
-        public Iterator<Contact> iterator() {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public Object[] toArray() {
-            return new Object[0];
-        }
-
-        @NonNull
-        @Override
-        public <T> T[] toArray(@NonNull T[] a) {
-            return null;
-        }
-
-        @Override
-        public boolean add(Contact contact) {
-            return false;
-        }
-
-        @Override
-        public boolean remove(@Nullable Object o) {
-            return false;
-        }
-
-        @Override
-        public boolean containsAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(@NonNull Collection<? extends Contact> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(int index, @NonNull Collection<? extends Contact> c) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean retainAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public void clear() {
-
-        }
-
-        @Override
-        public Contact get(int index) {
-            return null;
-        }
-
-        @Override
-        public Contact set(int index, Contact element) {
-            return null;
-        }
-
-        @Override
-        public void add(int index, Contact element) {
-
-        }
-
-        @Override
-        public Contact remove(int index) {
-            return null;
-        }
-
-        @Override
-        public int indexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @Override
-        public int lastIndexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Contact> listIterator() {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Contact> listIterator(int index) {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public List<Contact> subList(int fromIndex, int toIndex) {
-            return null;
+        public Conversation[] newArray(int size) {
+            return new Conversation[size];
         }
     };
-    private List<Message> messages = new List<Message>() {
-        @Override
-        public int size() {
-            return 0;
-        }
 
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
+    public String getKey() {
+        return key;
+    }
 
-        @Override
-        public boolean contains(@Nullable Object o) {
-            return false;
-        }
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-        @NonNull
-        @Override
-        public Iterator<Message> iterator() {
-            return null;
-        }
+    public String getName() {
+        return name;
+    }
 
-        @NonNull
-        @Override
-        public Object[] toArray() {
-            return new Object[0];
-        }
-
-        @NonNull
-        @Override
-        public <T> T[] toArray(@NonNull T[] a) {
-            return null;
-        }
-
-        @Override
-        public boolean add(Message message) {
-            return false;
-        }
-
-        @Override
-        public boolean remove(@Nullable Object o) {
-            return false;
-        }
-
-        @Override
-        public boolean containsAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(@NonNull Collection<? extends Message> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(int index, @NonNull Collection<? extends Message> c) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean retainAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public void clear() {
-
-        }
-
-        @Override
-        public Message get(int index) {
-            return null;
-        }
-
-        @Override
-        public Message set(int index, Message element) {
-            return null;
-        }
-
-        @Override
-        public void add(int index, Message element) {
-
-        }
-
-        @Override
-        public Message remove(int index) {
-            return null;
-        }
-
-        @Override
-        public int indexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @Override
-        public int lastIndexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Message> listIterator() {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Message> listIterator(int index) {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public List<Message> subList(int fromIndex, int toIndex) {
-            return null;
-        }
-    };
+    public void setName(String name) {
+        this.name = name;
+    }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import com.chatter.R;
 import com.chatter.classes.Contact;
+import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -50,16 +51,17 @@ public class ConversationsListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_ADD_CONVERSATION) {
-            Contact contact = data.getParcelableExtra("contact");
-
-            Intent conversationIntent = new Intent(this, ConversationActivity.class);
-            conversationIntent.putExtra("currentUser", currentUser);
-            conversationIntent.putExtra("currentUser", currentUser);///TODO: de pus obiectul conversatiei create
-            startActivity(conversationIntent);
-            Toast.makeText(this,contact.getEmail(),Toast.LENGTH_LONG).show();
+            Conversation conversation = data.getParcelableExtra("conversation");
+            openConversation(conversation);
         }
     }
 
+    private void openConversation(Conversation conversation){
+        Intent conversationIntent = new Intent(this, ConversationActivity.class);
+        conversationIntent.putExtra("conversation", conversation);
+        conversationIntent.putExtra("currentUser", currentUser);
+        startActivity(conversationIntent);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();

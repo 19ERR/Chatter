@@ -137,18 +137,142 @@ public class User implements Parcelable {
             return null;
         }
     };
+    private List<Conversation> conversations = new List<Conversation>() {
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public boolean contains(@Nullable Object o) {
+            return false;
+        }
+
+        @NonNull
+        @Override
+        public Iterator<Conversation> iterator() {
+            return null;
+        }
+
+        @NonNull
+        @Override
+        public Object[] toArray() {
+            return new Object[0];
+        }
+
+        @NonNull
+        @Override
+        public <T> T[] toArray(@NonNull T[] a) {
+            return null;
+        }
+
+        @Override
+        public boolean add(Conversation conversation) {
+            return false;
+        }
+
+        @Override
+        public boolean remove(@Nullable Object o) {
+            return false;
+        }
+
+        @Override
+        public boolean containsAll(@NonNull Collection<?> c) {
+            return false;
+        }
+
+        @Override
+        public boolean addAll(@NonNull Collection<? extends Conversation> c) {
+            return false;
+        }
+
+        @Override
+        public boolean addAll(int index, @NonNull Collection<? extends Conversation> c) {
+            return false;
+        }
+
+        @Override
+        public boolean removeAll(@NonNull Collection<?> c) {
+            return false;
+        }
+
+        @Override
+        public boolean retainAll(@NonNull Collection<?> c) {
+            return false;
+        }
+
+        @Override
+        public void clear() {
+
+        }
+
+        @Override
+        public Conversation get(int index) {
+            return null;
+        }
+
+        @Override
+        public Conversation set(int index, Conversation element) {
+            return null;
+        }
+
+        @Override
+        public void add(int index, Conversation element) {
+
+        }
+
+        @Override
+        public Conversation remove(int index) {
+            return null;
+        }
+
+        @Override
+        public int indexOf(@Nullable Object o) {
+            return 0;
+        }
+
+        @Override
+        public int lastIndexOf(@Nullable Object o) {
+            return 0;
+        }
+
+        @NonNull
+        @Override
+        public ListIterator<Conversation> listIterator() {
+            return null;
+        }
+
+        @NonNull
+        @Override
+        public ListIterator<Conversation> listIterator(int index) {
+            return null;
+        }
+
+        @NonNull
+        @Override
+        public List<Conversation> subList(int fromIndex, int toIndex) {
+            return null;
+        }
+    };
 
     protected User(Parcel in) {
         email = in.readString();
-        contacts = in.createTypedArrayList(Contact.CREATOR);
         key = in.readString();
+        contacts = in.createTypedArrayList(Contact.CREATOR);
+        conversations = in.createTypedArrayList(Conversation.CREATOR);
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(email);
-        dest.writeTypedList(contacts);
         dest.writeString(key);
+        dest.writeTypedList(contacts);
+        dest.writeTypedList(conversations);
     }
 
     @Override
@@ -199,4 +323,11 @@ public class User implements Parcelable {
         this.email = email;
     }
 
+    public List<Conversation> getConversations() {
+        return conversations;
+    }
+
+    public void setConversations(List<Conversation> conversations) {
+        this.conversations = conversations;
+    }
 }
