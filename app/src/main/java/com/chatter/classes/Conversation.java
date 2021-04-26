@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import com.google.firebase.database.Exclude;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,11 +21,7 @@ public class Conversation implements Parcelable {
     @Exclude
     private String key;
     private String name;
-    private List<Contact> participants;
-
-    /*public List<Contact> getParticipants() {
-        return participants;
-    }*/
+    private ArrayList<Contact> participants = new ArrayList<>();
 
     public Map<String, Object> getParticipants() {
         Map<String,Object> contactHashMap = new HashMap<>();
@@ -45,15 +42,18 @@ public class Conversation implements Parcelable {
 
     private List<Message> messages;
 
-    public void setParticipants(List<Contact> participants) {
-        this.participants = participants;
+    public void setParticipants(HashMap<String,Contact> contacts) {
+        for (String key : contacts.keySet()) {
+            contacts.get(key).setKey(key);
+            this.participants.add(contacts.get(key));
+        }
     }
 
     public void setMessages(List<Message> messages) {
         this.messages = messages;
     }
 
-    public Conversation(String name, List<Contact> participants){
+    public Conversation(String name, ArrayList<Contact> participants){
         this.name = name;
         this.participants = participants;
     }

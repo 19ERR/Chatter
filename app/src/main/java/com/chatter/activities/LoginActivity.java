@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference usersRef = database.getReference("users");
 
-        Query query = usersRef.orderByChild("email").equalTo("stanciuandreicristian@gmail.com").limitToFirst(1);
+        Query query = usersRef.orderByChild("email").equalTo(account.getEmail()).limitToFirst(1);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -114,20 +114,38 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     currentUser.setKey(userSnapshot.getKey());
 
                     //TODO:query pentru conversatii
-                    /*DatabaseReference convRef = database.getReference("conversations");
-                    Query query = convRef.orderByChild("participants");//.equalTo(currentUser.getKey());
+                    DatabaseReference userConvRef = database.getReference().child("users").child(currentUser.getKey()).child("user_conversations");
+                    Query query = userConvRef.orderByKey();
                     query.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            DataSnapshot userSnapshot = snapshot.getChildren().iterator().next();
-                            userSnapshot.getKey();
+                            for (DataSnapshot userSnapshot: snapshot.getChildren()) {
+                                String value = userSnapshot.getValue(String.class);
+                                String key = userSnapshot.getKey();
+
+                                DatabaseReference convRef = database.getReference().child("conversations").child(value);
+                                convRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        Conversation c = snapshot.getValue(Conversation.class);
+                                        c.setKey(snapshot.getKey());
+                                        currentUser.getConversations().add(c);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+                            }
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
 
                         }
-                    });*/
+                    });
                 }
                 else {
                     FirebaseDatabase database = FirebaseDatabase.getInstance();

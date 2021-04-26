@@ -28,6 +28,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -77,8 +78,9 @@ public class ContactListActivity extends AppCompatActivity {
         FloatingActionButton buttonStartConversation = findViewById(R.id.button_start_conversation);
         buttonStartConversation.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                List<Contact> selectedContacts;
-                selectedContacts = currentUser.getContacts().stream().filter(Contact::isSelected).collect(Collectors.toList());
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                ArrayList<Contact> selectedContacts;
+                selectedContacts = (ArrayList<Contact>)currentUser.getContacts().stream().filter(Contact::isSelected).collect(Collectors.toList());
                 Conversation newConversation;
                 String newConversationName = "";
 
@@ -89,17 +91,21 @@ public class ContactListActivity extends AppCompatActivity {
                         newConversationName = selectedContacts.get(0).getEmail();
                     }
                 } else {
-                    //popup pentru numele conversatiei
+                    //TODO:popup pentru numele conversatiei
                     newConversationName = "Conversatie noua";
                 }
                 newConversation = new Conversation(newConversationName, selectedContacts);
+                currentUser.getConversations().add(newConversation);
                 newConversation.getParticipantsList().add(new Contact(currentUser.getEmail(),currentUser.getKey()));
 
-                //adaugare in lista utilizatorului
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                //adaugare in lista de conversatii
                 DatabaseReference convRef = database.getReference("conversations").push();
                 convRef.setValue(newConversation);
                 newConversation.setKey(convRef.getKey());
+
+                //adaugare in lista utilizatorului
+                DatabaseReference userConvRef = database.getReference("users").child(currentUser.getKey()).child("user_conversations").push();
+                userConvRef.setValue(convRef.getKey());
 
                 Intent data = new Intent();
                 Activity activity = ((ContactListActivity)v.getContext());

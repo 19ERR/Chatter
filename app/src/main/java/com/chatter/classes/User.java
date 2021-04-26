@@ -19,8 +19,8 @@ import java.util.Map;
 public class User implements Parcelable {
     private String email;
     private String key;
-    private List<Contact> contacts = new ArrayList<>();
-    private List<Conversation> conversations = new ArrayList<>();
+    private ArrayList<Contact> contacts = new ArrayList<>();
+    private ArrayList<Conversation> conversations = new ArrayList<>();
 
     protected User(Parcel in) {
         email = in.readString();
@@ -88,7 +88,7 @@ public class User implements Parcelable {
         this.email = email;
     }
 
-    public List<Conversation> getConversations() {
+    public ArrayList<Conversation> getConversations() {
         return conversations;
     }
 
