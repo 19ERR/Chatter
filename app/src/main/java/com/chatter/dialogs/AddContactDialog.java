@@ -3,6 +3,7 @@ package com.chatter.dialogs;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -13,6 +14,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.chatter.R;
+import com.chatter.activities.ContactListActivity;
+import com.chatter.adapters.ContactsAdapter;
 import com.chatter.classes.Contact;
 import com.chatter.classes.User;
 import com.google.firebase.database.DataSnapshot;
@@ -89,11 +92,11 @@ public class AddContactDialog extends Dialog implements
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference contactsRef = database.getReference("users").child(currentUser.getKey()).child("contacts");
 
-                    Map<String, Contact> contacts = new HashMap<>();
-                    for (int nr = 0; nr < currentUser.getContacts().size(); nr++){
-                        contacts.put(Integer.toString(nr), currentUser.getContacts().get(nr));
-                    }
-                    contactsRef.setValue(contacts);
+                    contactsRef.updateChildren((currentUser.getContactsHashMap()));
+                    Intent intent = new Intent();
+                    intent.setAction(ContactListActivity.REFRESH_LIST);
+
+                    c.sendBroadcast(intent);
                 }
                 else {
                     Toast.makeText(v.getContext(), "Emailul introdus este gresit sau utilizatorul nu este inregistrat in aplicatie!",Toast.LENGTH_LONG).show();
@@ -105,5 +108,8 @@ public class AddContactDialog extends Dialog implements
 
             }
         });
+
+
     }
+
 }

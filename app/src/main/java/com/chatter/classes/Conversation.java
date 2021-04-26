@@ -40,12 +40,10 @@ public class Conversation implements Parcelable {
         this.messages = messages;
     }
 
-
     public Conversation(String name, List<Contact> participants){
         this.name = name;
         this.participants = participants;
     }
-
 
     private Conversation(){}
 

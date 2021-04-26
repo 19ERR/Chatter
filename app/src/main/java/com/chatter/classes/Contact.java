@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import com.google.firebase.database.Exclude;
 
+import java.util.HashMap;
 import java.util.Iterator;
 
 public class Contact implements Parcelable {
@@ -19,6 +20,12 @@ public class Contact implements Parcelable {
     protected Contact(Parcel in) {
         email = in.readString();
         key = in.readString();
+    }
+
+    private Contact(){}
+
+    public Contact(String email){
+        this.email = email;
     }
 
     @Override
@@ -62,14 +69,11 @@ public class Contact implements Parcelable {
     }
 
 
-    private Contact(){}
-
-    public Contact(String email){
-        this.email = email;
-    }
-
+    @Exclude
     public void select(){
         this.selected = !this.selected;
     }
+    @Exclude
     public boolean isSelected(){return selected;}
+
 }

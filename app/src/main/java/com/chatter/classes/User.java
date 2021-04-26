@@ -8,257 +8,17 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 public class User implements Parcelable {
     private String email;
     private String key;
-    private List<Contact> contacts = new List<Contact>() {
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public boolean contains(@Nullable Object o) {
-            return false;
-        }
-
-        @NonNull
-        @Override
-        public Iterator<Contact> iterator() {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public Object[] toArray() {
-            return new Object[0];
-        }
-
-        @NonNull
-        @Override
-        public <T> T[] toArray(@NonNull T[] a) {
-            return null;
-        }
-
-        @Override
-        public boolean add(Contact contact) {
-            return false;
-        }
-
-        @Override
-        public boolean remove(@Nullable Object o) {
-            return false;
-        }
-
-        @Override
-        public boolean containsAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(@NonNull Collection<? extends Contact> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(int index, @NonNull Collection<? extends Contact> c) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean retainAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public void clear() {
-
-        }
-
-        @Override
-        public Contact get(int index) {
-            return null;
-        }
-
-        @Override
-        public Contact set(int index, Contact element) {
-            return null;
-        }
-
-        @Override
-        public void add(int index, Contact element) {
-
-        }
-
-        @Override
-        public Contact remove(int index) {
-            return null;
-        }
-
-        @Override
-        public int indexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @Override
-        public int lastIndexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Contact> listIterator() {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Contact> listIterator(int index) {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public List<Contact> subList(int fromIndex, int toIndex) {
-            return null;
-        }
-    };
-    private List<Conversation> conversations = new List<Conversation>() {
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public boolean contains(@Nullable Object o) {
-            return false;
-        }
-
-        @NonNull
-        @Override
-        public Iterator<Conversation> iterator() {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public Object[] toArray() {
-            return new Object[0];
-        }
-
-        @NonNull
-        @Override
-        public <T> T[] toArray(@NonNull T[] a) {
-            return null;
-        }
-
-        @Override
-        public boolean add(Conversation conversation) {
-            return false;
-        }
-
-        @Override
-        public boolean remove(@Nullable Object o) {
-            return false;
-        }
-
-        @Override
-        public boolean containsAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(@NonNull Collection<? extends Conversation> c) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(int index, @NonNull Collection<? extends Conversation> c) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public boolean retainAll(@NonNull Collection<?> c) {
-            return false;
-        }
-
-        @Override
-        public void clear() {
-
-        }
-
-        @Override
-        public Conversation get(int index) {
-            return null;
-        }
-
-        @Override
-        public Conversation set(int index, Conversation element) {
-            return null;
-        }
-
-        @Override
-        public void add(int index, Conversation element) {
-
-        }
-
-        @Override
-        public Conversation remove(int index) {
-            return null;
-        }
-
-        @Override
-        public int indexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @Override
-        public int lastIndexOf(@Nullable Object o) {
-            return 0;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Conversation> listIterator() {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public ListIterator<Conversation> listIterator(int index) {
-            return null;
-        }
-
-        @NonNull
-        @Override
-        public List<Conversation> subList(int fromIndex, int toIndex) {
-            return null;
-        }
-    };
+    private List<Contact> contacts = new ArrayList<>();
+    private List<Conversation> conversations = new ArrayList<>();
 
     protected User(Parcel in) {
         email = in.readString();
@@ -304,8 +64,11 @@ public class User implements Parcelable {
         return contacts;
     }
 
-    public void setContacts(List<Contact> contacts) {
-        this.contacts = contacts;
+    public void setContacts(HashMap<String,Contact> contacts) {
+        for (String key : contacts.keySet()) {
+            contacts.get(key).setKey(key);
+            this.contacts.add(contacts.get(key));
+        }
     }
 
     public String getEmail() {
@@ -327,7 +90,20 @@ public class User implements Parcelable {
         return conversations;
     }
 
-    public void setConversations(List<Conversation> conversations) {
-        this.conversations = conversations;
+    public void setConversations(HashMap<String,Conversation> conversations) {
+        for (String key : conversations.keySet()) {
+            conversations.get(key).setKey(key);
+            this.conversations.add(conversations.get(key));
+        }
+    }
+
+    public Map<String, Object> getContactsHashMap(){
+        Map<String,Object> contactHashMap = new HashMap<>();
+        for (Contact c:
+             this.contacts) {
+            contactHashMap.put(c.getKey(), c);
+        }
+
+        return contactHashMap;
     }
 }
