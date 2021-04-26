@@ -24,8 +24,9 @@ public class Contact implements Parcelable {
 
     private Contact(){}
 
-    public Contact(String email){
+    public Contact(String email, String key){
         this.email = email;
+        this.key = key;
     }
 
     @Override
@@ -51,6 +52,7 @@ public class Contact implements Parcelable {
         }
     };
 
+    @Exclude
     public String getKey() {
         return key;
     }

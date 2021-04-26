@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.chatter.R;
+import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -26,10 +27,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int RC_SIGN_IN = 9001;
     GoogleSignInClient mGoogleSignInClient;
     User currentUser;
+    ArrayList<Conversation> conversations = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +112,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     currentUser = userSnapshot.getValue(User.class);
                     assert currentUser != null;
                     currentUser.setKey(userSnapshot.getKey());
+
+                    //TODO:query pentru conversatii
+                    /*DatabaseReference convRef = database.getReference("conversations");
+                    Query query = convRef.orderByChild("participants");//.equalTo(currentUser.getKey());
+                    query.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            DataSnapshot userSnapshot = snapshot.getChildren().iterator().next();
+                            userSnapshot.getKey();
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });*/
                 }
                 else {
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -118,6 +139,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
 
                 intent.putExtra("currentUser", currentUser);
+                intent.putParcelableArrayListExtra("conversations", conversations);
                 startActivity(intent);
             }
 
@@ -126,6 +148,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
         });
+
+
 
     }
 

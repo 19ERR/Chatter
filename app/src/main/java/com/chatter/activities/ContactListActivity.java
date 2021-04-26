@@ -28,6 +28,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,7 +83,7 @@ public class ContactListActivity extends AppCompatActivity {
                 String newConversationName = "";
 
                 if(selectedContacts.size() == 1){
-                    newConversation = currentUser.getConversations().stream().filter(c -> c.getParticipants().contains(selectedContacts.get(0))).findFirst().orElse(null);
+                    newConversation = currentUser.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
 
                     if(newConversation == null) {
                         newConversationName = selectedContacts.get(0).getEmail();
@@ -91,26 +93,17 @@ public class ContactListActivity extends AppCompatActivity {
                     newConversationName = "Conversatie noua";
                 }
                 newConversation = new Conversation(newConversationName, selectedContacts);
-                currentUser.getConversations().add(newConversation);
+                newConversation.getParticipantsList().add(new Contact(currentUser.getEmail(),currentUser.getKey()));
 
+                //adaugare in lista utilizatorului
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference userConvRef = database.getReference("users").child(currentUser.getKey()).child("conversations").push();
-                newConversation.setKey(userConvRef.getKey());
-                userConvRef.child("name").setValue(newConversation.getName());
-                userConvRef.child("participants").setValue(newConversation.getParticipants());
-                userConvRef.child("key").setValue(newConversation.getKey());
-
                 DatabaseReference convRef = database.getReference("conversations").push();
-                convRef.child("name").setValue(newConversation.getName());
-                convRef.child("participants").setValue(newConversation.getParticipants());
-                convRef.child("key").setValue(newConversation.getKey());
-                convRef.child("messages").setValue(newConversation.getMessages());
-                newConversation.setKey(convRef.getKey());
                 convRef.setValue(newConversation);
+                newConversation.setKey(convRef.getKey());
 
                 Intent data = new Intent();
                 Activity activity = ((ContactListActivity)v.getContext());
-                data.putExtra("conversation",newConversation);
+                data.putExtra("conversation_key",newConversation.getKey());//TODO: CHANGE Conversation activity implementation
                 activity.setResult(1,data);
                 activity.finish();
             }

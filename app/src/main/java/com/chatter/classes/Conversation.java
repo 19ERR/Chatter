@@ -22,10 +22,23 @@ public class Conversation implements Parcelable {
     private String name;
     private List<Contact> participants;
 
-    public List<Contact> getParticipants() {
+    /*public List<Contact> getParticipants() {
         return participants;
-    }
+    }*/
 
+    public Map<String, Object> getParticipants() {
+        Map<String,Object> contactHashMap = new HashMap<>();
+        for (Contact c:
+                this.participants) {
+            contactHashMap.put(c.getKey(), c);
+        }
+
+        return contactHashMap;
+    }
+    @Exclude
+    public List<Contact> getParticipantsList() {
+        return this.participants;
+    }
     public List<Message> getMessages() {
         return messages;
     }
