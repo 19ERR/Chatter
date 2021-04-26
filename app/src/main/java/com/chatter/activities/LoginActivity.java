@@ -113,39 +113,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     assert currentUser != null;
                     currentUser.setKey(userSnapshot.getKey());
 
-                    //TODO:query pentru conversatii
-                    DatabaseReference userConvRef = database.getReference().child("users").child(currentUser.getKey()).child("user_conversations");
-                    Query query = userConvRef.orderByKey();
-                    query.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            for (DataSnapshot userSnapshot: snapshot.getChildren()) {
-                                String value = userSnapshot.getValue(String.class);
-                                String key = userSnapshot.getKey();
 
-                                DatabaseReference convRef = database.getReference().child("conversations").child(value);
-                                convRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        Conversation c = snapshot.getValue(Conversation.class);
-                                        c.setKey(snapshot.getKey());
-                                        currentUser.getConversations().add(c);
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
-
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-
-                        }
-                    });
                 }
                 else {
                     FirebaseDatabase database = FirebaseDatabase.getInstance();

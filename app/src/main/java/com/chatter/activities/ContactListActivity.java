@@ -104,12 +104,14 @@ public class ContactListActivity extends AppCompatActivity {
                 newConversation.setKey(convRef.getKey());
 
                 //adaugare in lista utilizatorului
-                DatabaseReference userConvRef = database.getReference("users").child(currentUser.getKey()).child("user_conversations").push();
-                userConvRef.setValue(convRef.getKey());
+                for (Contact c: selectedContacts) {
+                    DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
+                    userConvRef.setValue(convRef.getKey());
+                }
 
                 Intent data = new Intent();
                 Activity activity = ((ContactListActivity)v.getContext());
-                data.putExtra("conversation_key",newConversation.getKey());//TODO: CHANGE Conversation activity implementation
+                data.putExtra("conversation_key",newConversation.getKey());
                 activity.setResult(1,data);
                 activity.finish();
             }

@@ -35,4 +35,13 @@
         app:popupTheme="@style/Theme.Chatter.PopupOverlay"
         app:title="Chatter" />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycle_conversation_list"
+        android:layout_width="411dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_conversation_list" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
