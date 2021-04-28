@@ -4,9 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.chatter.R;
-import com.chatter.adapters.ContactsAdapter;
-import com.chatter.adapters.ConversationAdapter;
-import com.chatter.classes.Contact;
+import com.chatter.adapters.ConversationsAdapter;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -15,7 +13,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
@@ -36,7 +33,7 @@ public class ConversationsListActivity extends AppCompatActivity {
     private Toolbar toolbar;
     User currentUser;
     RecyclerView recyclerView;
-    public ConversationAdapter conversationAdapter;
+    public ConversationsAdapter conversationsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,39 +56,50 @@ public class ConversationsListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.conversationAdapter =  new ConversationAdapter(this.currentUser.getConversations());
+        this.conversationsAdapter =  new ConversationsAdapter(this.currentUser.getConversations());
         this.recyclerView = findViewById(R.id.recycle_conversation_list);
         this.recyclerView.setHasFixedSize(true);
         this.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        this.recyclerView.setAdapter(this.conversationAdapter);
+        this.recyclerView.setAdapter(this.conversationsAdapter);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference userConvRef = database.getReference().child("users").child(currentUser.getKey()).child("user_conversations");
-        Query query = userConvRef.orderByKey();
-        query.addValueEventListener(new ValueEventListener() {
+        DatabaseReference userConvRef = database.getReference().child("users").child(currentUser.getKey()).child("user_conversations").getRef();
+        userConvRef.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot userSnapshot: snapshot.getChildren()) {
-                    String value = userSnapshot.getValue(String.class);
-                    String key = userSnapshot.getKey();
+            public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
+                String value = userConversationSnapshot.getValue(String.class);
 
-                    DatabaseReference convRef = database.getReference().child("conversations").child(value);
-                    convRef.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            Conversation c = snapshot.getValue(Conversation.class);
-                            c.setKey(snapshot.getKey());
-                            currentUser.getConversations().add(c);
-                            conversationAdapter.notifyDataSetChanged();
-                        }
+                DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
+                conversationsRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
+                        Conversation c = conversationSnapshot.getValue(Conversation.class);
+                        c.setKey(conversationSnapshot.getKey());
+                        currentUser.getConversations().add(c);
+                        conversationsAdapter.notifyDataSetChanged();
+                    }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
 
-                        }
-                    });
+                    }
+                });
+                conversationsAdapter.notifyDataSetChanged();
+            }
 
-                }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
             }
 
             @Override
@@ -102,7 +110,6 @@ public class ConversationsListActivity extends AppCompatActivity {
 
     }
 
-    //TODO: FIX DUPLICATE CONVERSATION LISTING AFTER NEW CONVERSATIONS ARE CREATED
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

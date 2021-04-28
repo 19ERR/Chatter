@@ -7,18 +7,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
-import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
-public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapter.ViewHolder> {
+public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdapter.ViewHolder> {
 
     private final ArrayList<Conversation> conversations;
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -35,7 +32,7 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         }
     }
 
-    public ConversationAdapter(ArrayList<Conversation> dataSet) {
+    public ConversationsAdapter(ArrayList<Conversation> dataSet) {
         conversations = dataSet;
     }
 

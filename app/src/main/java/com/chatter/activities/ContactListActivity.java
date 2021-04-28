@@ -95,19 +95,19 @@ public class ContactListActivity extends AppCompatActivity {
                     newConversationName = "Conversatie noua";
                 }
                 newConversation = new Conversation(newConversationName, selectedContacts);
-                currentUser.getConversations().add(newConversation);
                 newConversation.getParticipantsList().add(new Contact(currentUser.getEmail(),currentUser.getKey()));
+                currentUser.getConversations().add(newConversation);
 
-                //adaugare in lista de conversatii
                 DatabaseReference convRef = database.getReference("conversations").push();
-                convRef.setValue(newConversation);
-                newConversation.setKey(convRef.getKey());
-
                 //adaugare in lista utilizatorului
                 for (Contact c: selectedContacts) {
                     DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
                     userConvRef.setValue(convRef.getKey());
                 }
+
+                //adaugare in lista de conversatii
+                convRef.setValue(newConversation);
+                newConversation.setKey(convRef.getKey());
 
                 Intent data = new Intent();
                 Activity activity = ((ContactListActivity)v.getContext());
