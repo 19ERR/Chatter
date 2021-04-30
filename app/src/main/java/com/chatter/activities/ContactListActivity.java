@@ -14,10 +14,14 @@ import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -88,7 +92,7 @@ public class ContactListActivity extends AppCompatActivity {
                     newConversation = currentUser.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
 
                     if(newConversation == null) {
-                        newConversationName = selectedContacts.get(0).getEmail();
+                        newConversationName = "private";
                     }
                 } else {
                     //TODO:popup pentru numele conversatiei
@@ -96,24 +100,31 @@ public class ContactListActivity extends AppCompatActivity {
                 }
                 newConversation = new Conversation(newConversationName, selectedContacts);
                 newConversation.getParticipantsList().add(new Contact(currentUser.getEmail(),currentUser.getKey()));
-                currentUser.getConversations().add(newConversation);
 
                 DatabaseReference convRef = database.getReference("conversations").push();
-                //adaugare in lista utilizatorului
+                //adaugare in lista de conversatii
+                convRef.setValue(newConversation);
+                newConversation.setKey(convRef.getKey());
+
+                //adaugare in lista utilizatorilor
                 for (Contact c: selectedContacts) {
                     DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
                     userConvRef.setValue(convRef.getKey());
                 }
 
-                //adaugare in lista de conversatii
-                convRef.setValue(newConversation);
-                newConversation.setKey(convRef.getKey());
+                DatabaseReference newConfRef = database.getReference("conversations").child(convRef.getKey());
+                newConfRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        Intent data = new Intent();
+                        Activity activity = ((ContactListActivity)v.getContext());
+                        data.putExtra("conversation_key",task.getResult().getKey());
+                        activity.setResult(1,data);
+                        activity.finish();
+                    }
+                });
 
-                Intent data = new Intent();
-                Activity activity = ((ContactListActivity)v.getContext());
-                data.putExtra("conversation_key",newConversation.getKey());
-                activity.setResult(1,data);
-                activity.finish();
+
             }
         });
     }

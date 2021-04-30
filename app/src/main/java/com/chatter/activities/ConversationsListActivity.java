@@ -6,6 +6,7 @@ import android.os.Bundle;
 import com.chatter.R;
 import com.chatter.adapters.ConversationsAdapter;
 import com.chatter.classes.Conversation;
+import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ChildEventListener;
@@ -30,10 +31,8 @@ import android.widget.Toast;
 
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
-    private Toolbar toolbar;
-    User currentUser;
-    RecyclerView recyclerView;
-    public ConversationsAdapter conversationsAdapter;
+    private User currentUser;
+    private ConversationsAdapter conversationsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,11 +55,11 @@ public class ConversationsListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.conversationsAdapter =  new ConversationsAdapter(this.currentUser.getConversations());
-        this.recyclerView = findViewById(R.id.recycle_conversation_list);
-        this.recyclerView.setHasFixedSize(true);
-        this.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        this.recyclerView.setAdapter(this.conversationsAdapter);
+        this.conversationsAdapter =  new ConversationsAdapter(this.currentUser);
+        RecyclerView recyclerView = findViewById(R.id.recycle_conversation_list);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(this.conversationsAdapter);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference userConvRef = database.getReference().child("users").child(currentUser.getKey()).child("user_conversations").getRef();
@@ -70,13 +69,16 @@ public class ConversationsListActivity extends AppCompatActivity {
                 String value = userConversationSnapshot.getValue(String.class);
 
                 DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
-                conversationsRef.addValueEventListener(new ValueEventListener() {
+                conversationsRef.keepSynced(true);
+                conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
                         Conversation c = conversationSnapshot.getValue(Conversation.class);
                         c.setKey(conversationSnapshot.getKey());
                         currentUser.getConversations().add(c);
                         conversationsAdapter.notifyDataSetChanged();
+                        //inutil
+
                     }
 
                     @Override

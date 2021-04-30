@@ -6,7 +6,12 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +27,7 @@ public class Conversation implements Parcelable {
     private String key;
     private String name;
     private ArrayList<Contact> participants = new ArrayList<>();
+    private ArrayList<Message> messages = new ArrayList<>();
 
     public Map<String, Object> getParticipants() {
         Map<String,Object> contactHashMap = new HashMap<>();
@@ -33,14 +39,12 @@ public class Conversation implements Parcelable {
         return contactHashMap;
     }
     @Exclude
-    public List<Contact> getParticipantsList() {
+    public ArrayList<Contact> getParticipantsList() {
         return this.participants;
     }
-    public List<Message> getMessages() {
+    public ArrayList<Message> getMessages() {
         return messages;
     }
-
-    private List<Message> messages;
 
     public void setParticipants(HashMap<String,Contact> contacts) {
         for (String key : contacts.keySet()) {
@@ -49,8 +53,11 @@ public class Conversation implements Parcelable {
         }
     }
 
-    public void setMessages(List<Message> messages) {
-        this.messages = messages;
+    public void setMessages(HashMap<String,Message> messages) {
+        for (String key : messages.keySet()) {
+            messages.get(key).setSenderKey(key);
+            this.messages.add(messages.get(key));
+        }
     }
 
     public Conversation(String name, ArrayList<Contact> participants){
@@ -58,7 +65,8 @@ public class Conversation implements Parcelable {
         this.participants = participants;
     }
 
-    private Conversation(){}
+    private Conversation(){
+    }
 
     protected Conversation(Parcel in) {
         key = in.readString();

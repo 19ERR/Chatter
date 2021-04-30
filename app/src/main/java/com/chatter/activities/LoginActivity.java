@@ -101,6 +101,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Intent intent = new Intent(this, ConversationsListActivity.class);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
+        database.setPersistenceEnabled(true);
         DatabaseReference usersRef = database.getReference("users");
 
         Query query = usersRef.orderByChild("email").equalTo(account.getEmail()).limitToFirst(1);
@@ -112,11 +113,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     currentUser = userSnapshot.getValue(User.class);
                     assert currentUser != null;
                     currentUser.setKey(userSnapshot.getKey());
-
-
                 }
                 else {
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference dbRef = database.getReference("users").push();
                     dbRef.child("email").setValue(account.getEmail());
 

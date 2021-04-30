@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 
 public class User implements Parcelable {
     private String email;
@@ -107,5 +108,10 @@ public class User implements Parcelable {
         }
 
         return contactHashMap;
+    }
+
+    public Conversation getConversation(String conversationKey){
+        Optional<Conversation> result = conversations.stream().filter(c -> c.getKey().equals(conversationKey)).findFirst();
+        return result.orElse(null);
     }
 }

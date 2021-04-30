@@ -20,6 +20,18 @@ public class Message implements Parcelable {
         senderKey = in.readString();
     }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(key);
+        dest.writeString(content);
+        dest.writeString(senderKey);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
     public static final Creator<Message> CREATOR = new Creator<Message>() {
         @Override
         public Message createFromParcel(Parcel in) {
@@ -31,6 +43,21 @@ public class Message implements Parcelable {
             return new Message[size];
         }
     };
+
+    @Exclude
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public Message(String content, String senderKey){
+        this.content = content;
+        this.senderKey = senderKey;
+        this.timestamp = new Date();
+    }
 
     public String getContent() {
         return content;
@@ -58,15 +85,4 @@ public class Message implements Parcelable {
 
     private Message(){}
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(key);
-        dest.writeString(content);
-        dest.writeString(senderKey);
-    }
 }
