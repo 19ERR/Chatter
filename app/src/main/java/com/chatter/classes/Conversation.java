@@ -26,9 +26,32 @@ public class Conversation implements Parcelable {
     @Exclude
     private String key;
     private String name;
+    @Exclude
     private ArrayList<Contact> participants = new ArrayList<>();
+    @Exclude
     private ArrayList<Message> messages = new ArrayList<>();
 
+    public String getKey() {
+        return key;
+    }
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setParticipants(HashMap<String,Contact> contacts) {
+        for (String key : contacts.keySet()) {
+            contacts.get(key).setKey(key);
+            this.participants.add(contacts.get(key));
+        }
+    }
+    @Exclude
     public Map<String, Object> getParticipants() {
         Map<String,Object> contactHashMap = new HashMap<>();
         for (Contact c:
@@ -42,10 +65,14 @@ public class Conversation implements Parcelable {
     public ArrayList<Contact> getParticipantsList() {
         return this.participants;
     }
-    public ArrayList<Message> getMessagesList() {
-        return messages;
-    }
 
+    public void setMessages(HashMap<String,Message> messages) {
+        for (String key : messages.keySet()) {
+            messages.get(key).setSenderKey(key);
+            this.messages.add(messages.get(key));
+        }
+    }
+    @Exclude
     public Map<String, Object> getMessages() {
         Map<String,Object> messagesHashMap = new HashMap<>();
         for (Message m:
@@ -55,18 +82,9 @@ public class Conversation implements Parcelable {
 
         return messagesHashMap;
     }
-    public void setParticipants(HashMap<String,Contact> contacts) {
-        for (String key : contacts.keySet()) {
-            contacts.get(key).setKey(key);
-            this.participants.add(contacts.get(key));
-        }
-    }
-
-    public void setMessages(HashMap<String,Message> messages) {
-        for (String key : messages.keySet()) {
-            messages.get(key).setSenderKey(key);
-            this.messages.add(messages.get(key));
-        }
+    @Exclude
+    public ArrayList<Message> getMessagesList() {
+        return messages;
     }
 
     public Conversation(String name, ArrayList<Contact> participants){
@@ -109,19 +127,5 @@ public class Conversation implements Parcelable {
         }
     };
 
-    public String getKey() {
-        return key;
-    }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }

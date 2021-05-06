@@ -3,7 +3,6 @@ package com.chatter.dialogs;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -14,8 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.chatter.R;
-import com.chatter.activities.ContactListActivity;
-import com.chatter.adapters.ContactsAdapter;
 import com.chatter.classes.Contact;
 import com.chatter.classes.User;
 import com.google.firebase.database.DataSnapshot;
@@ -24,9 +21,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class AddContactDialog extends Dialog implements
         android.view.View.OnClickListener {

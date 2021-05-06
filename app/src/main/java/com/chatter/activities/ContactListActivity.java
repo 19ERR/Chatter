@@ -2,10 +2,7 @@ package com.chatter.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 
 import com.chatter.R;
@@ -14,58 +11,33 @@ import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class ContactListActivity extends AppCompatActivity {
     public User currentUser;
+
     RecyclerView recyclerView;
-    public ContactsAdapter contactsAdapter;
-    public static String REFRESH_LIST = "com.domain.action.REFRESH_LIST";
-
-    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(REFRESH_LIST)) {
-                contactsAdapter.notifyDataSetChanged();
-            }
-        }
-    };
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Toast.makeText(this,"Resume",Toast.LENGTH_SHORT).show();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(REFRESH_LIST);
-        this.registerReceiver(broadcastReceiver, filter);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,18 +51,26 @@ public class ContactListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Contacts");
         }
 
-        this.contactsAdapter =  new ContactsAdapter(this.currentUser.getContacts());
-        this.recyclerView = findViewById(R.id.recycle_contact_list);
-        this.recyclerView.setHasFixedSize(true);
-        this.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        this.recyclerView.setAdapter(this.contactsAdapter);
+
+        Query query = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getKey()).child("contacts").limitToLast(100);
+
+        FirebaseRecyclerOptions<Contact> options =
+                new FirebaseRecyclerOptions.Builder<Contact>().setQuery(query, Contact.class).build();
+        ContactsAdapter adapter = new ContactsAdapter(options);
+        adapter.startListening();
+
+        recyclerView = findViewById(R.id.recycle_contact_list);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
 
         FloatingActionButton buttonStartConversation = findViewById(R.id.button_start_conversation);
         buttonStartConversation.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 ArrayList<Contact> selectedContacts;
-                selectedContacts = (ArrayList<Contact>)currentUser.getContacts().stream().filter(Contact::isSelected).collect(Collectors.toList());
+                selectedContacts = (ArrayList<Contact>)ContactsAdapter.selectedContacts;
+
                 Conversation newConversation;
                 String newConversationName = "";
 
@@ -108,6 +88,7 @@ public class ContactListActivity extends AppCompatActivity {
                 newConversation.getParticipantsList().add(new Contact(currentUser.getEmail(),currentUser.getKey()));
 
                 DatabaseReference convRef = database.getReference("conversations").push();
+                convRef.setValue("sdss");
                 //adaugare in lista de conversatii
                 convRef.setValue(newConversation);
                 newConversation.setKey(convRef.getKey());

@@ -11,17 +11,20 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
-import com.chatter.activities.ContactListActivity;
 import com.chatter.classes.Contact;
-import java.util.List;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 
-public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
+import java.util.ArrayList;
 
-    private final List<Contact> contacts;
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+public class ContactsAdapter extends FirebaseRecyclerAdapter<Contact, ContactsAdapter.ContactHolder> {
+
+    public static ArrayList<Contact> selectedContacts = new ArrayList<>();
+
+    public static class ContactHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
 
-        public ViewHolder(View view) {
+        public ContactHolder(View view) {
             super(view);
 
             textView = view.findViewById(R.id.contactEmail);
@@ -32,39 +35,36 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         }
     }
 
-    public ContactsAdapter(List<Contact> dataSet) {
-        contacts = dataSet;
+    public ContactsAdapter(@NonNull FirebaseRecyclerOptions<Contact> options) {
+        super(options);
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
-        View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.contact_view, viewGroup, false);
+    public ContactHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.contact_view, parent, false);
 
-        return new ViewHolder(view);
+        return new ContactHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-        viewHolder.getTextView().setText(contacts.get(position).getEmail());
+    protected void onBindViewHolder(ContactHolder viewHolder, int position, @NonNull Contact contact) {
+        viewHolder.getTextView().setText(contact.getEmail());
         viewHolder.getTextView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                contacts.get(position).select();
-                if(contacts.get(position).isSelected()){
+                contact.select();
+                if(contact.isSelected()){
+                    selectedContacts.add(contact);
                     Toast.makeText(v.getContext(),"Selectat",Toast.LENGTH_SHORT).show();
                     v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.black));
                 } else {
+                    selectedContacts.remove(contact);
                     Toast.makeText(v.getContext(),"Deselectat",Toast.LENGTH_SHORT).show();
                     v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.white));
                 }
             }
         });
-    }
-
-    @Override
-    public int getItemCount() {
-        return contacts.size();
     }
 }

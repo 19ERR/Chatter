@@ -115,8 +115,9 @@ public class ConversationsListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_ADD_CONVERSATION) {
-            String conversation_key = data.getStringExtra("conversation_key");
-            openConversation(conversation_key);
+            //TODO:MECANISM DE DESCHIDERE A CONVERSATIEI NOU CREATE
+            //String conversation_key = data.getStringExtra("conversation_key");
+            //openConversation(conversation_key);
         }
     }
 
