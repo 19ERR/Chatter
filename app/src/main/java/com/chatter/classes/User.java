@@ -2,6 +2,7 @@ package com.chatter.classes;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,9 +19,15 @@ import java.util.Map;
 import java.util.Optional;
 
 public class User implements Parcelable {
-    private String email;
+    @Exclude
     private String key;
+
+    private String email;
+
+    @Exclude
     private ArrayList<Contact> contacts = new ArrayList<>();
+
+    @Exclude
     private ArrayList<Conversation> conversations = new ArrayList<>();
 
     protected User(Parcel in) {
@@ -28,6 +35,13 @@ public class User implements Parcelable {
         key = in.readString();
         contacts = in.createTypedArrayList(Contact.CREATOR);
         conversations = in.createTypedArrayList(Conversation.CREATOR);
+    }
+
+    private User(){
+    }
+
+    public User(String email){
+        this.email = email;
     }
 
     @Override
@@ -54,24 +68,13 @@ public class User implements Parcelable {
             return new User[size];
         }
     };
-    @Exclude
+
     public String getKey() {
         return key;
     }
 
     public void setKey(String key) {
         this.key = key;
-    }
-
-    public List<Contact> getContacts() {
-        return contacts;
-    }
-
-    public void setContacts(HashMap<String,Contact> contacts) {
-        for (String key : contacts.keySet()) {
-            contacts.get(key).setKey(key);
-            this.contacts.add(contacts.get(key));
-        }
     }
 
     public String getEmail() {
@@ -82,18 +85,22 @@ public class User implements Parcelable {
         this.email = email;
     }
 
-    private User(){
+    public ArrayList<Contact> getContacts() {
+        return contacts;
     }
 
-    public User(String email){
-        this.email = email;
+    public void setContacts(Map<String,Contact> contacts) {
+        for (String key : contacts.keySet()) {
+            contacts.get(key).setKey(key);
+            this.contacts.add(contacts.get(key));
+        }
     }
 
     public ArrayList<Conversation> getConversations() {
         return conversations;
     }
 
-    public void setConversations(HashMap<String,Conversation> conversations) {
+    public void setConversations(Map<String,Conversation> conversations) {
         for (String key : conversations.keySet()) {
             conversations.get(key).setKey(key);
             this.conversations.add(conversations.get(key));
@@ -113,5 +120,13 @@ public class User implements Parcelable {
     public Conversation getConversation(String conversationKey){
         Optional<Conversation> result = conversations.stream().filter(c -> c.getKey().equals(conversationKey)).findFirst();
         return result.orElse(null);
+    }
+
+    public void addContact(Contact newContact){
+        this.contacts.add(newContact);
+    }
+
+    public void removeContact(String contactKey){
+        contacts.removeIf(c -> c.getKey().equals(contactKey));
     }
 }

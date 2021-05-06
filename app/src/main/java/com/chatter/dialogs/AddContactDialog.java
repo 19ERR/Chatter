@@ -87,16 +87,11 @@ public class AddContactDialog extends Dialog implements
                     Contact newContact = userSnapshot.getValue(Contact.class);
                     assert newContact != null;
                     newContact.setKey(userSnapshot.getKey());
-                    currentUser.getContacts().add(newContact);
 
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference contactsRef = database.getReference("users").child(currentUser.getKey()).child("contacts");
+                    DatabaseReference contactsRef = database.getReference("users").child(currentUser.getKey()).child("contacts").child(userSnapshot.getKey()).child("email");
 
-                    contactsRef.updateChildren((currentUser.getContactsHashMap()));
-                    Intent intent = new Intent();
-                    intent.setAction(ContactListActivity.REFRESH_LIST);
-
-                    c.sendBroadcast(intent);
+                    contactsRef.setValue(newContact.getEmail());
                 }
                 else {
                     Toast.makeText(v.getContext(), "Emailul introdus este gresit sau utilizatorul nu este inregistrat in aplicatie!",Toast.LENGTH_LONG).show();
@@ -108,8 +103,6 @@ public class AddContactDialog extends Dialog implements
 
             }
         });
-
-
     }
 
 }

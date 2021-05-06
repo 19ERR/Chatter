@@ -13,6 +13,7 @@ import java.util.Iterator;
 public class Contact implements Parcelable {
 
     private String email;
+    @Exclude
     private String key;
     @Exclude
     private boolean selected = false;
@@ -24,7 +25,7 @@ public class Contact implements Parcelable {
 
     private Contact(){}
 
-    public Contact(String email, String key){
+    public Contact(String key, String email){
         this.email = email;
         this.key = key;
     }
@@ -61,7 +62,6 @@ public class Contact implements Parcelable {
         this.key = key;
     }
 
-
     public String getEmail() {
         return email;
     }
@@ -70,8 +70,6 @@ public class Contact implements Parcelable {
         this.email = email;
     }
 
-
-    @Exclude
     public void select(){
         this.selected = !this.selected;
     }

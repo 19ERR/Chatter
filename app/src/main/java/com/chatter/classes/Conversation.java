@@ -42,10 +42,19 @@ public class Conversation implements Parcelable {
     public ArrayList<Contact> getParticipantsList() {
         return this.participants;
     }
-    public ArrayList<Message> getMessages() {
+    public ArrayList<Message> getMessagesList() {
         return messages;
     }
 
+    public Map<String, Object> getMessages() {
+        Map<String,Object> messagesHashMap = new HashMap<>();
+        for (Message m:
+                this.messages) {
+            messagesHashMap.put(m.getKey(), m);
+        }
+
+        return messagesHashMap;
+    }
     public void setParticipants(HashMap<String,Contact> contacts) {
         for (String key : contacts.keySet()) {
             contacts.get(key).setKey(key);

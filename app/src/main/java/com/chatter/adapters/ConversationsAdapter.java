@@ -51,7 +51,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, final int position) {
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         Conversation conversation = currentUser.getConversations().get(position);
         if(conversation.getParticipantsList().size() == 2){
             for(Contact contact: conversation.getParticipantsList()){

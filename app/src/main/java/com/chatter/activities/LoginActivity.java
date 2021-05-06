@@ -1,16 +1,19 @@
 package com.chatter.activities;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.chatter.R;
+import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -20,6 +23,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,6 +32,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -101,7 +106,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Intent intent = new Intent(this, ConversationsListActivity.class);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        database.setPersistenceEnabled(true);
+        //database.setPersistenceEnabled(true);
         DatabaseReference usersRef = database.getReference("users");
 
         Query query = usersRef.orderByChild("email").equalTo(account.getEmail()).limitToFirst(1);
@@ -109,10 +114,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    DataSnapshot userSnapshot = snapshot.getChildren().iterator().next();
-                    currentUser = userSnapshot.getValue(User.class);
+                    DataSnapshot sn = snapshot.getChildren().iterator().next();
+
+                    currentUser = sn.getValue(User.class);
                     assert currentUser != null;
-                    currentUser.setKey(userSnapshot.getKey());
+                    currentUser.setKey(sn.getKey());
                 }
                 else {
                     DatabaseReference dbRef = database.getReference("users").push();
@@ -122,8 +128,39 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     currentUser.setKey(dbRef.getKey());
                 }
 
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference userContactsRef = database.getReference("users").child(currentUser.getKey()).child("contacts");
+                userContactsRef.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        Log.w("CL", snapshot.toString());
+                        Contact newContact = snapshot.getValue(Contact.class);
+                        newContact.setKey(snapshot.getKey());
+                        currentUser.addContact(newContact);
+                    }
+
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                        currentUser.removeContact(snapshot.getKey());
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
                 intent.putExtra("currentUser", currentUser);
-                intent.putParcelableArrayListExtra("conversations", conversations);
                 startActivity(intent);
             }
 
@@ -132,9 +169,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
         });
-
-
-
     }
 
     private void userNotAuthenticated(){

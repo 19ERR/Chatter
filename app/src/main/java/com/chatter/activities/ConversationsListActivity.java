@@ -77,8 +77,6 @@ public class ConversationsListActivity extends AppCompatActivity {
                         c.setKey(conversationSnapshot.getKey());
                         currentUser.getConversations().add(c);
                         conversationsAdapter.notifyDataSetChanged();
-                        //inutil
-
                     }
 
                     @Override

@@ -50,7 +50,7 @@ public class ConversationActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.messagesAdapter =  new MessagesAdapter(currentUser.getConversation(conversationKey).getMessages());
+        this.messagesAdapter =  new MessagesAdapter(currentUser.getConversation(conversationKey).getMessagesList());
         RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
