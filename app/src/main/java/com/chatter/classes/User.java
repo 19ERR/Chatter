@@ -18,115 +18,79 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
 
-public class User implements Parcelable {
+public class User {
     @Exclude
-    private String key;
+    private static String key;
 
-    private String email;
-
-    @Exclude
-    private ArrayList<Contact> contacts = new ArrayList<>();
+    private static String email;
 
     @Exclude
-    private ArrayList<Conversation> conversations = new ArrayList<>();
+    private static ArrayList<Contact> contacts = new ArrayList<>();
 
-    protected User(Parcel in) {
-        email = in.readString();
-        key = in.readString();
-        contacts = in.createTypedArrayList(Contact.CREATOR);
-        conversations = in.createTypedArrayList(Conversation.CREATOR);
+    @Exclude
+    private static ArrayList<Conversation> conversations = new ArrayList<>();
+
+    private User() {
     }
 
-    private User(){
-    }
-
-    public User(String email){
-        this.email = email;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(email);
-        dest.writeString(key);
-        dest.writeTypedList(contacts);
-        dest.writeTypedList(conversations);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    public static final Creator<User> CREATOR = new Creator<User>() {
-        @Override
-        public User createFromParcel(Parcel in) {
-            return new User(in);
-        }
-
-        @Override
-        public User[] newArray(int size) {
-            return new User[size];
-        }
-    };
-
-    public String getKey() {
+    public static String getKey() {
         return key;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public static void setKey(String key) {
+        User.key = key;
     }
 
-    public String getEmail() {
+    public static String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public static void setEmail(String email) {
+        User.email = email;
     }
 
-    public ArrayList<Contact> getContacts() {
+    public static ArrayList<Contact> getContacts() {
         return contacts;
     }
 
-    public void setContacts(Map<String,Contact> contacts) {
+    public static void setContacts(Map<String,Contact> contacts) {
         for (String key : contacts.keySet()) {
             contacts.get(key).setKey(key);
-            this.contacts.add(contacts.get(key));
+            User.contacts.add(contacts.get(key));
         }
     }
 
-    public ArrayList<Conversation> getConversations() {
-        return conversations;
+    public static ArrayList<Conversation> getConversations() {
+        return User.conversations;
     }
 
-    public void setConversations(Map<String,Conversation> conversations) {
+    public static void setConversations(Map<String,Conversation> conversations) {
         for (String key : conversations.keySet()) {
             conversations.get(key).setKey(key);
-            this.conversations.add(conversations.get(key));
+            User.conversations.add(conversations.get(key));
         }
     }
 
-    public Map<String, Object> getContactsHashMap(){
+    public static Map<String, Object> getContactsHashMap(){
         Map<String,Object> contactHashMap = new HashMap<>();
         for (Contact c:
-             this.contacts) {
+             User.contacts) {
             contactHashMap.put(c.getKey(), c);
         }
 
         return contactHashMap;
     }
 
-    public Conversation getConversation(String conversationKey){
+    public static Conversation getConversation(String conversationKey){
         Optional<Conversation> result = conversations.stream().filter(c -> c.getKey().equals(conversationKey)).findFirst();
         return result.orElse(null);
     }
 
-    public void addContact(Contact newContact){
-        this.contacts.add(newContact);
+    public static void addContact(Contact newContact){
+        User.contacts.add(newContact);
     }
 
-    public void removeContact(String contactKey){
+    public static void removeContact(String contactKey){
         contacts.removeIf(c -> c.getKey().equals(contactKey));
     }
 }

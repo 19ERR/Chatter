@@ -26,7 +26,7 @@ public class Conversation implements Parcelable {
     @Exclude
     private String key;
     private String name;
-    @Exclude
+
     private ArrayList<Contact> participants = new ArrayList<>();
     @Exclude
     private ArrayList<Message> messages = new ArrayList<>();
@@ -51,7 +51,7 @@ public class Conversation implements Parcelable {
             this.participants.add(contacts.get(key));
         }
     }
-    @Exclude
+
     public Map<String, Object> getParticipants() {
         Map<String,Object> contactHashMap = new HashMap<>();
         for (Contact c:

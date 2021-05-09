@@ -38,8 +38,6 @@ import java.util.List;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int RC_SIGN_IN = 9001;
     GoogleSignInClient mGoogleSignInClient;
-    User currentUser;
-    ArrayList<Conversation> conversations = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,28 +113,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     DataSnapshot sn = snapshot.getChildren().iterator().next();
-
-                    currentUser = sn.getValue(User.class);
-                    assert currentUser != null;
-                    currentUser.setKey(sn.getKey());
+                    User.setKey(sn.getKey());
                 }
                 else {
                     DatabaseReference dbRef = database.getReference("users").push();
                     dbRef.child("email").setValue(account.getEmail());
-
-                    currentUser = new User(account.getEmail());
-                    currentUser.setKey(dbRef.getKey());
+                    User.setKey(dbRef.getKey());
                 }
 
+                User.setEmail(account.getEmail());
+
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference userContactsRef = database.getReference("users").child(currentUser.getKey()).child("contacts");
+                DatabaseReference userContactsRef = database.getReference("users").child(User.getKey()).child("contacts");
                 userContactsRef.addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                        Log.w("CL", snapshot.toString());
                         Contact newContact = snapshot.getValue(Contact.class);
                         newContact.setKey(snapshot.getKey());
-                        currentUser.addContact(newContact);
+                        User.addContact(newContact);
                     }
 
                     @Override
@@ -146,7 +140,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                     @Override
                     public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-                        currentUser.removeContact(snapshot.getKey());
+                        User.removeContact(snapshot.getKey());
                     }
 
                     @Override
@@ -160,7 +154,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     }
                 });
 
-                intent.putExtra("currentUser", currentUser);
                 startActivity(intent);
             }
 

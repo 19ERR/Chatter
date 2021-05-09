@@ -28,13 +28,11 @@ public class AddContactDialog extends Dialog implements
     public Activity c;
     public Dialog d;
     public Button buttonAddContact, buttonCancel;
-    public User currentUser;
     String newContactEmail;
 
-    public AddContactDialog(Activity a, User currentUser) {
+    public AddContactDialog(Activity a) {
         super(a);
         this.c = a;
-        this.currentUser = currentUser;
     }
 
     @Override
@@ -83,7 +81,7 @@ public class AddContactDialog extends Dialog implements
                     newContact.setKey(userSnapshot.getKey());
 
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference contactsRef = database.getReference("users").child(currentUser.getKey()).child("contacts").child(userSnapshot.getKey()).child("email");
+                    DatabaseReference contactsRef = database.getReference("users").child(User.getKey()).child("contacts").child(userSnapshot.getKey()).child("email");
 
                     contactsRef.setValue(newContact.getEmail());
                 }

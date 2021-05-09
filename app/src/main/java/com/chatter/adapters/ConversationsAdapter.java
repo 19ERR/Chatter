@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdapter.ViewHolder> {
 
-    private final User currentUser;
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
 
@@ -37,8 +36,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         }
     }
 
-    public ConversationsAdapter(User currentUser) {
-        this.currentUser = currentUser;
+    public ConversationsAdapter() {
     }
 
     @NonNull
@@ -52,10 +50,10 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
-        Conversation conversation = currentUser.getConversations().get(position);
+        Conversation conversation = User.getConversations().get(position);
         if(conversation.getParticipantsList().size() == 2){
             for(Contact contact: conversation.getParticipantsList()){
-                if(!contact.getEmail().equals(currentUser.getEmail())){
+                if(!contact.getEmail().equals(User.getEmail())){
                     viewHolder.getTextView().setText(contact.getEmail());
                     break;
                 }
@@ -67,10 +65,9 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         viewHolder.getTextView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(),currentUser.getConversations().get(position).getName(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(),User.getConversations().get(position).getName(),Toast.LENGTH_SHORT).show();
                 Intent openConversationIntent = new Intent(v.getContext(), ConversationActivity.class);
-                openConversationIntent.putExtra("currentUser", currentUser);
-                openConversationIntent.putExtra("conversation_key", currentUser.getConversations().get(position).getKey());
+                openConversationIntent.putExtra("conversation_key", User.getConversations().get(position).getKey());
                 v.getContext().startActivity(openConversationIntent);
             }
         });
@@ -78,6 +75,6 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
 
     @Override
     public int getItemCount() {
-        return currentUser.getConversations().size();
+        return User.getConversations().size();
     }
 }

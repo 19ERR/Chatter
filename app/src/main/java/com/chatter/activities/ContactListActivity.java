@@ -35,15 +35,12 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class ContactListActivity extends AppCompatActivity {
-    public User currentUser;
-
     RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_list);
-        this.currentUser = getIntent().getParcelableExtra("currentUser");
 
         Toolbar toolbar = findViewById(R.id.toolbar_contact_list);
         setSupportActionBar(toolbar);
@@ -51,8 +48,7 @@ public class ContactListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Contacts");
         }
 
-
-        Query query = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getKey()).child("contacts").limitToLast(100);
+        Query query = FirebaseDatabase.getInstance().getReference("users").child(User.getKey()).child("contacts").limitToLast(100);
 
         FirebaseRecyclerOptions<Contact> options =
                 new FirebaseRecyclerOptions.Builder<Contact>().setQuery(query, Contact.class).build();
@@ -68,14 +64,13 @@ public class ContactListActivity extends AppCompatActivity {
         buttonStartConversation.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
-                ArrayList<Contact> selectedContacts;
-                selectedContacts = (ArrayList<Contact>)ContactsAdapter.selectedContacts;
+                ArrayList<Contact> selectedContacts = (ArrayList<Contact>)ContactsAdapter.selectedContacts;
 
                 Conversation newConversation;
                 String newConversationName = "";
 
                 if(selectedContacts.size() == 1){
-                    newConversation = currentUser.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
+                    newConversation = User.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
 
                     if(newConversation == null) {
                         newConversationName = "private";
@@ -84,17 +79,22 @@ public class ContactListActivity extends AppCompatActivity {
                     //TODO:popup pentru numele conversatiei
                     newConversationName = "Conversatie noua";
                 }
-                newConversation = new Conversation(newConversationName, selectedContacts);
-                newConversation.getParticipantsList().add(new Contact(currentUser.getEmail(),currentUser.getKey()));
+                //regasire lista de contacte cu chei
+                ArrayList<Contact> conversationContacts = new ArrayList<>();
+                conversationContacts.add(new Contact(User.getKey(),User.getEmail()));
+                for (Contact c: selectedContacts) {
+                    Contact contact = User.getContacts().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
+                    conversationContacts.add(contact);
+                }
+
+                newConversation = new Conversation(newConversationName, conversationContacts);
 
                 DatabaseReference convRef = database.getReference("conversations").push();
-                convRef.setValue("sdss");
-                //adaugare in lista de conversatii
                 convRef.setValue(newConversation);
                 newConversation.setKey(convRef.getKey());
 
                 //adaugare in lista utilizatorilor
-                for (Contact c: selectedContacts) {
+                for (Contact c: conversationContacts) {
                     DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
                     userConvRef.setValue(convRef.getKey());
                 }
@@ -110,8 +110,6 @@ public class ContactListActivity extends AppCompatActivity {
                         activity.finish();
                     }
                 });
-
-
             }
         });
     }
@@ -129,7 +127,7 @@ public class ContactListActivity extends AppCompatActivity {
 
         switch(item.getItemId()){
             case R.id.menuAddContact:
-                AddContactDialog cdd=new AddContactDialog(this, this.currentUser);
+                AddContactDialog cdd=new AddContactDialog(this);
                 cdd.show();
                 break;
         }

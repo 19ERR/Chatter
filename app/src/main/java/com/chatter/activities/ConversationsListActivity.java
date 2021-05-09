@@ -6,7 +6,6 @@ import android.os.Bundle;
 import com.chatter.R;
 import com.chatter.adapters.ConversationsAdapter;
 import com.chatter.classes.Conversation;
-import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ChildEventListener;
@@ -31,20 +30,18 @@ import android.widget.Toast;
 
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
-    private User currentUser;
+
     private ConversationsAdapter conversationsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations_list);
-        currentUser = getIntent().getParcelableExtra("currentUser");
 
         FloatingActionButton button = findViewById(R.id.button_add_conversation);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent newConversationIntent = new Intent(v.getContext(), ContactListActivity.class);
-                newConversationIntent.putExtra("currentUser", currentUser);
                 startActivityForResult(newConversationIntent, RC_ADD_CONVERSATION);
             }
         });
@@ -55,14 +52,14 @@ public class ConversationsListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.conversationsAdapter =  new ConversationsAdapter(this.currentUser);
+        this.conversationsAdapter =  new ConversationsAdapter();
         RecyclerView recyclerView = findViewById(R.id.recycle_conversation_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(this.conversationsAdapter);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference userConvRef = database.getReference().child("users").child(currentUser.getKey()).child("user_conversations").getRef();
+        DatabaseReference userConvRef = database.getReference().child("users").child(User.getKey()).child("user_conversations").getRef();
         userConvRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
@@ -75,7 +72,7 @@ public class ConversationsListActivity extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
                         Conversation c = conversationSnapshot.getValue(Conversation.class);
                         c.setKey(conversationSnapshot.getKey());
-                        currentUser.getConversations().add(c);
+                        User.getConversations().add(c);
                         conversationsAdapter.notifyDataSetChanged();
                     }
 
@@ -115,16 +112,14 @@ public class ConversationsListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_ADD_CONVERSATION) {
-            //TODO:MECANISM DE DESCHIDERE A CONVERSATIEI NOU CREATE
-            //String conversation_key = data.getStringExtra("conversation_key");
-            //openConversation(conversation_key);
+            String conversation_key = data.getStringExtra("conversation_key");
+            openConversation(conversation_key);
         }
     }
 
     private void openConversation(String conversation_key){
         Intent conversationIntent = new Intent(this, ConversationActivity.class);
         conversationIntent.putExtra("conversation_key", conversation_key);
-        conversationIntent.putExtra("currentUser", currentUser);
         startActivity(conversationIntent);
     }
     @Override
