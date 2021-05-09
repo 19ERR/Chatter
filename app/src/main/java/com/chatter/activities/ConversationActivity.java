@@ -8,13 +8,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
-import com.chatter.adapters.ConversationsAdapter;
 import com.chatter.adapters.MessagesAdapter;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,17 +20,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import java.util.ArrayList;
 
 public class ConversationActivity extends AppCompatActivity {
-    private Toolbar toolbar;
-    User currentUser;
     MessagesAdapter messagesAdapter;
     Conversation currentConversation;
 
@@ -40,9 +32,7 @@ public class ConversationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation);
-        currentUser = getIntent().getParcelableExtra("currentUser");
         String conversationKey = getIntent().getStringExtra("conversation_key");
-        currentConversation = currentUser.getConversation(conversationKey);
 
         Toolbar toolbar = findViewById(R.id.toolbar_conversation_list);
         setSupportActionBar(toolbar);
@@ -50,23 +40,52 @@ public class ConversationActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.messagesAdapter =  new MessagesAdapter(currentUser.getConversation(conversationKey).getMessagesList());
+        this.messagesAdapter =  new MessagesAdapter(User.getConversation(conversationKey).getMessagesList());
         RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(this.messagesAdapter);
 
         FloatingActionButton button = findViewById(R.id.button_send_message);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                EditText inputEditTextMessage = findViewById(R.id.edit_text_message);
-                String messageContent = inputEditTextMessage.getText().toString();
+        button.setOnClickListener(v -> {
+            EditText inputEditTextMessage = findViewById(R.id.edit_text_message);
+            String messageContent = inputEditTextMessage.getText().toString();
 
-                Message newMessage = new Message(messageContent, currentUser.getKey());
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference convRef = database.getReference().child("conversations").child(currentConversation.getKey()).child("messages").push();
-                convRef.setValue(newMessage);
-                inputEditTextMessage.setText("");
+            Message newMessage = new Message(messageContent, User.getKey());
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference convRef = database.getReference().child("conversations").child(User.getConversation(conversationKey).getKey()).child("messages").push();
+            convRef.setValue(newMessage);
+            inputEditTextMessage.setText("");
+        });
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference messagesRef = database.getReference().child("conversations").child(conversationKey).child("messages").getRef();
+
+        //adauga listener pentru trigger notifyDataSetChanged pentru actualizarea mesajelor
+        messagesRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                messagesAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
 

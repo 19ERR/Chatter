@@ -61,56 +61,52 @@ public class ContactListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         FloatingActionButton buttonStartConversation = findViewById(R.id.button_start_conversation);
-        buttonStartConversation.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                ArrayList<Contact> selectedContacts = (ArrayList<Contact>)ContactsAdapter.selectedContacts;
+        buttonStartConversation.setOnClickListener((View.OnClickListener) v -> {
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            ArrayList<Contact> selectedContacts = (ArrayList<Contact>)ContactsAdapter.selectedContacts;
 
-                Conversation newConversation;
-                String newConversationName = "";
+            Conversation newConversation;
+            String newConversationName = "";
 
-                if(selectedContacts.size() == 1){
-                    newConversation = User.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
+            if(selectedContacts.size() == 1){
+                newConversation = User.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
 
-                    if(newConversation == null) {
-                        newConversationName = "private";
-                    }
-                } else {
-                    //TODO:popup pentru numele conversatiei
-                    newConversationName = "Conversatie noua";
+                if(newConversation == null) {
+                    newConversationName = "private";
                 }
-                //regasire lista de contacte cu chei
-                ArrayList<Contact> conversationContacts = new ArrayList<>();
-                conversationContacts.add(new Contact(User.getKey(),User.getEmail()));
-                for (Contact c: selectedContacts) {
-                    Contact contact = User.getContacts().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
-                    conversationContacts.add(contact);
-                }
-
-                newConversation = new Conversation(newConversationName, conversationContacts);
-
-                DatabaseReference convRef = database.getReference("conversations").push();
-                convRef.setValue(newConversation);
-                newConversation.setKey(convRef.getKey());
-
-                //adaugare in lista utilizatorilor
-                for (Contact c: conversationContacts) {
-                    DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
-                    userConvRef.setValue(convRef.getKey());
-                }
-
-                DatabaseReference newConfRef = database.getReference("conversations").child(convRef.getKey());
-                newConfRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        Intent data = new Intent();
-                        Activity activity = ((ContactListActivity)v.getContext());
-                        data.putExtra("conversation_key",task.getResult().getKey());
-                        activity.setResult(1,data);
-                        activity.finish();
-                    }
-                });
+            } else {
+                //TODO:popup pentru numele conversatiei
+                newConversationName = "Conversatie noua";
             }
+
+            //regasire lista de contacte cu chei
+            ArrayList<Contact> conversationContacts = new ArrayList<>();
+            conversationContacts.add(new Contact(User.getKey(),User.getEmail()));
+            for (Contact c: selectedContacts) {
+                Contact contact = User.getContacts().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
+                conversationContacts.add(contact);
+            }
+
+            newConversation = new Conversation(newConversationName, conversationContacts);
+
+            DatabaseReference convRef = database.getReference("conversations").push();
+            convRef.setValue(newConversation);
+            newConversation.setKey(convRef.getKey());
+
+            //adaugare in lista utilizatorilor
+            for (Contact c: conversationContacts) {
+                DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
+                userConvRef.setValue(convRef.getKey());
+            }
+
+            DatabaseReference newConfRef = database.getReference("conversations").child(convRef.getKey());
+            newConfRef.get().addOnCompleteListener(task -> {
+                Intent data = new Intent();
+                Activity activity = ((ContactListActivity)v.getContext());
+                data.putExtra("conversation_key",task.getResult().getKey());
+                activity.setResult(1,data);
+                activity.finish();
+            });
         });
     }
 

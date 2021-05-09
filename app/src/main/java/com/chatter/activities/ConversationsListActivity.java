@@ -1,11 +1,13 @@
 package com.chatter.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
 import com.chatter.R;
 import com.chatter.adapters.ConversationsAdapter;
 import com.chatter.classes.Conversation;
+import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ChildEventListener;
@@ -39,11 +41,9 @@ public class ConversationsListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_conversations_list);
 
         FloatingActionButton button = findViewById(R.id.button_add_conversation);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent newConversationIntent = new Intent(v.getContext(), ContactListActivity.class);
-                startActivityForResult(newConversationIntent, RC_ADD_CONVERSATION);
-            }
+        button.setOnClickListener(v -> {
+            Intent newConversationIntent = new Intent(v.getContext(), ContactListActivity.class);
+            startActivityForResult(newConversationIntent, RC_ADD_CONVERSATION);
         });
 
         Toolbar toolbar = findViewById(R.id.toolbar_conversation_list);
@@ -63,17 +63,51 @@ public class ConversationsListActivity extends AppCompatActivity {
         userConvRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
+                //pentru fiecare conversatie care apare se preia cheia
                 String value = userConversationSnapshot.getValue(String.class);
 
+                //referinta catre conversatie din root-ul "conversations"
                 DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
+
                 conversationsRef.keepSynced(true);
+                //pentru fiecare conversatie aparuta, preia datele
                 conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
                         Conversation c = conversationSnapshot.getValue(Conversation.class);
                         c.setKey(conversationSnapshot.getKey());
                         User.getConversations().add(c);
-                        conversationsAdapter.notifyDataSetChanged();
+                        //listener pentru mesaje pe fiecare conversatie
+                        DatabaseReference messagesRef = database.getReference().child("conversations").child(value).child("messages").getRef();
+                        messagesRef.addChildEventListener(new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                Message message = snapshot.getValue(Message.class);
+                                message.setKey(snapshot.getKey());
+                                c.getMessagesList().add(message);
+                                conversationsAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+
+                            @Override
+                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                            }
+
+                            @Override
+                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
                     }
 
                     @Override
@@ -129,6 +163,7 @@ public class ConversationsListActivity extends AppCompatActivity {
         return true;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
