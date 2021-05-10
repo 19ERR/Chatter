@@ -9,8 +9,10 @@ import com.chatter.R;
 import com.chatter.adapters.ContactsAdapter;
 import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
+import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
+import com.chatter.dialogs.InsertConversationNameDialog;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -61,9 +63,9 @@ public class ContactListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         FloatingActionButton buttonStartConversation = findViewById(R.id.button_start_conversation);
-        buttonStartConversation.setOnClickListener((View.OnClickListener) v -> {
+        buttonStartConversation.setOnClickListener(v -> {
             FirebaseDatabase database = FirebaseDatabase.getInstance();
-            ArrayList<Contact> selectedContacts = (ArrayList<Contact>)ContactsAdapter.selectedContacts;
+            ArrayList<Contact> selectedContacts = ContactsAdapter.selectedContacts;
 
             Conversation newConversation;
             String newConversationName = "";
@@ -76,6 +78,8 @@ public class ContactListActivity extends AppCompatActivity {
                 }
             } else {
                 //TODO:popup pentru numele conversatiei
+                //InsertConversationNameDialog insertConversationNameDialog =new InsertConversationNameDialog(this);
+                //insertConversationNameDialog.show();
                 newConversationName = "Conversatie noua";
             }
 
@@ -101,6 +105,11 @@ public class ContactListActivity extends AppCompatActivity {
 
             DatabaseReference newConfRef = database.getReference("conversations").child(convRef.getKey());
             newConfRef.get().addOnCompleteListener(task -> {
+                //adaugas un mesag de sistem
+                Message newMessage = new Message("Conversatie creata", User.getKey());
+                DatabaseReference messagesRef = database.getReference().child("conversations").child(task.getResult().getKey()).child("messages").push();
+                messagesRef.setValue(newMessage);
+
                 Intent data = new Intent();
                 Activity activity = ((ContactListActivity)v.getContext());
                 data.putExtra("conversation_key",task.getResult().getKey());

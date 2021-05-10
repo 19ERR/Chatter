@@ -3,6 +3,7 @@
     <string name="login_email">Email</string>
     <string name="login_password">Parola</string>
     <string name="login_login">Autentificare</string>
+    <string name="login_register">Inregistrare</string>
     <string name="title_activity_conversations_list">ConversationsListActivity</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
@@ -113,4 +114,8 @@
     values-round/strings.xml for round devices.
     -->
     <string name="hello_world">Hello Square World!</string>
+    <string name="hint_conversation_name">Introduceti titlul...</string>
+    <string name="cancel_conversation_title">Anulare</string>
+    <string name="login_password_confirm">Confirmati parola</string>
+    <string name="login_cancel">Anulare</string>
 </resources>

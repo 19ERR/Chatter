@@ -26,7 +26,6 @@ import android.widget.EditText;
 
 public class ConversationActivity extends AppCompatActivity {
     MessagesAdapter messagesAdapter;
-    Conversation currentConversation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +50,7 @@ public class ConversationActivity extends AppCompatActivity {
             EditText inputEditTextMessage = findViewById(R.id.edit_text_message);
             String messageContent = inputEditTextMessage.getText().toString();
 
-            Message newMessage = new Message(messageContent, User.getKey());
+            Message newMessage = new Message(messageContent, User.getEmail());
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference convRef = database.getReference().child("conversations").child(User.getConversation(conversationKey).getKey()).child("messages").push();
             convRef.setValue(newMessage);
@@ -67,27 +66,24 @@ public class ConversationActivity extends AppCompatActivity {
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 messagesAdapter.notifyDataSetChanged();
             }
-
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
             }
-
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
             }
-
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
-
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
 }

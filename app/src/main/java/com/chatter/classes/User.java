@@ -25,10 +25,10 @@ public class User {
     private static String email;
 
     @Exclude
-    private static ArrayList<Contact> contacts = new ArrayList<>();
+    private static final ArrayList<Contact> contacts = new ArrayList<>();
 
     @Exclude
-    private static ArrayList<Conversation> conversations = new ArrayList<>();
+    private static final ArrayList<Conversation> conversations = new ArrayList<>();
 
     private User() {
     }
