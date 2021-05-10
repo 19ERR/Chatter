@@ -1,5 +1,8 @@
 package com.chatter.activities;
 
+import android.os.Bundle;
+import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
 import com.chatter.adapters.MessagesAdapter;
-import com.chatter.classes.Conversation;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -18,11 +20,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
 
 public class ConversationActivity extends AppCompatActivity {
     MessagesAdapter messagesAdapter;
@@ -39,7 +36,7 @@ public class ConversationActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.messagesAdapter =  new MessagesAdapter(User.getConversation(conversationKey).getMessagesList());
+        this.messagesAdapter = new MessagesAdapter(User.getConversation(conversationKey).getMessagesList());
         RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -66,21 +63,26 @@ public class ConversationActivity extends AppCompatActivity {
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 messagesAdapter.notifyDataSetChanged();
             }
+
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             }
+
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
             }
+
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
             }
         });
     }
+
     @Override
     protected void onResume() {
         super.onResume();

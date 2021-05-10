@@ -1,17 +1,14 @@
 package com.chatter.activities;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.EditText;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
-
-import android.accounts.Account;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.chatter.R;
 import com.chatter.classes.Contact;
@@ -109,17 +106,14 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
         }
 
         mAuth.signInWithEmailAndPassword(emailLogIn, passwordLogIn)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            assert user != null;
-                            User.setEmail(user.getEmail());
-                            userIsAuthenticated();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Authentication failed!", Toast.LENGTH_SHORT).show();
-                        }
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        assert user != null;
+                        User.setEmail(user.getEmail());
+                        userIsAuthenticated();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Authentication failed!", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

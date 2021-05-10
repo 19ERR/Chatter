@@ -8,27 +8,14 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.DialogFragment;
 
 import com.chatter.R;
-import com.chatter.classes.Contact;
-import com.chatter.classes.User;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 public class InsertConversationNameDialog extends Dialog implements
         android.view.View.OnClickListener {
 
-    private Dialog dialog;
-
     String newConversationName;
+    private Dialog dialog;
 
     public InsertConversationNameDialog(Activity activity) {
         super(activity);

@@ -21,20 +21,6 @@ public class ContactsAdapter extends FirebaseRecyclerAdapter<Contact, ContactsAd
 
     public static ArrayList<Contact> selectedContacts = new ArrayList<>();
 
-    public static class ContactHolder extends RecyclerView.ViewHolder {
-        private final TextView textView;
-
-        public ContactHolder(View view) {
-            super(view);
-
-            textView = view.findViewById(R.id.contactEmail);
-        }
-
-        public TextView getTextView() {
-            return textView;
-        }
-    }
-
     public ContactsAdapter(@NonNull FirebaseRecyclerOptions<Contact> options) {
         super(options);
     }
@@ -51,20 +37,31 @@ public class ContactsAdapter extends FirebaseRecyclerAdapter<Contact, ContactsAd
     @Override
     protected void onBindViewHolder(ContactHolder viewHolder, int position, @NonNull Contact contact) {
         viewHolder.getTextView().setText(contact.getEmail());
-        viewHolder.getTextView().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                contact.select();
-                if(contact.isSelected()){
-                    selectedContacts.add(contact);
-                    Toast.makeText(v.getContext(),"Selectat",Toast.LENGTH_SHORT).show();
-                    v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.black));
-                } else {
-                    selectedContacts.remove(contact);
-                    Toast.makeText(v.getContext(),"Deselectat",Toast.LENGTH_SHORT).show();
-                    v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.white));
-                }
+        viewHolder.getTextView().setOnClickListener(v -> {
+            contact.select();
+            if (contact.isSelected()) {
+                selectedContacts.add(contact);
+                Toast.makeText(v.getContext(), "Selectat", Toast.LENGTH_SHORT).show();
+                v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.black));
+            } else {
+                selectedContacts.remove(contact);
+                Toast.makeText(v.getContext(), "Deselectat", Toast.LENGTH_SHORT).show();
+                v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.white));
             }
         });
+    }
+
+    public static class ContactHolder extends RecyclerView.ViewHolder {
+        private final TextView textView;
+
+        public ContactHolder(View view) {
+            super(view);
+
+            textView = view.findViewById(R.id.contactEmail);
+        }
+
+        public TextView getTextView() {
+            return textView;
+        }
     }
 }

@@ -3,6 +3,17 @@ package com.chatter.activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
 import com.chatter.adapters.ConversationsAdapter;
@@ -16,19 +27,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
 
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
@@ -52,7 +50,7 @@ public class ConversationsListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.conversationsAdapter =  new ConversationsAdapter();
+        this.conversationsAdapter = new ConversationsAdapter();
         RecyclerView recyclerView = findViewById(R.id.recycle_conversation_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -151,11 +149,12 @@ public class ConversationsListActivity extends AppCompatActivity {
         }
     }
 
-    private void openConversation(String conversation_key){
+    private void openConversation(String conversation_key) {
         Intent conversationIntent = new Intent(this, ConversationActivity.class);
         conversationIntent.putExtra("conversation_key", conversation_key);
         startActivity(conversationIntent);
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
@@ -167,7 +166,7 @@ public class ConversationsListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch(item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.menuAbout:
                 Toast.makeText(this, "You clicked about", Toast.LENGTH_SHORT).show();
                 break;

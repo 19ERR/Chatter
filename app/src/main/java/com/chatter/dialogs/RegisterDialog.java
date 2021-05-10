@@ -1,15 +1,9 @@
 package com.chatter.dialogs;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.Dialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -19,9 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.chatter.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -29,7 +20,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static android.content.ContentValues.TAG;
 
 public class RegisterDialog extends DialogFragment {
     EditText editTextEmailRegister;
@@ -61,19 +51,10 @@ public class RegisterDialog extends DialogFragment {
 
         Button buttonRegisterConfirm = view.findViewById(R.id.buttonRegisterConfirm);
         Button buttonRegisterCancel = view.findViewById(R.id.buttonRegisterCancel);
-        buttonRegisterConfirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                register(v);
-            }
-        });
+        buttonRegisterConfirm.setOnClickListener(this::register);
 
         buttonRegisterCancel.setOnClickListener(v -> dismiss());
         Objects.requireNonNull(getDialog()).setTitle("Inregistrare");
-    }
-
-    public interface finishRegisterDialogListener {
-        void onFinishRegisterDialog(String inputText);
     }
 
     private void register(View v) {
@@ -114,14 +95,11 @@ public class RegisterDialog extends DialogFragment {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
         mAuth.createUserWithEmailAndPassword(newUserEmail, newUserPassword)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            finishRegister(mAuth.getCurrentUser());
-                        } else {
-                            finishRegister(null);
-                        }
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        finishRegister(mAuth.getCurrentUser());
+                    } else {
+                        finishRegister(null);
                     }
                 });
 
@@ -134,6 +112,10 @@ public class RegisterDialog extends DialogFragment {
             listener.onFinishRegisterDialog(newUserEmail);
             dismiss();
         }
+    }
+
+    public interface finishRegisterDialogListener {
+        void onFinishRegisterDialog(String inputText);
     }
 
 }

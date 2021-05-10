@@ -1,10 +1,8 @@
 package com.chatter.adapters;
 
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,40 +15,11 @@ import com.chatter.classes.User;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder> {
 
     private final ArrayList<Message> messages;
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView textViewMessageContent;
-        private final TextView textViewMessageSender;
-        private final TextView textViewMessageTimestamp;
-        private final CardView cardView;
-
-        public CardView getLinearLayout() {
-            return cardView;
-        }
-        public TextView getTextViewMessageContent() {
-            return textViewMessageContent;
-        }
-        public TextView getTextViewMessageSender() {
-            return textViewMessageSender;
-        }
-        public TextView getTextViewMessageTimestamp() {
-            return textViewMessageTimestamp;
-        }
-
-        public ViewHolder(View view) {
-            super(view);
-            textViewMessageContent = view.findViewById(R.id.textViewMessageContent);
-            textViewMessageSender = view.findViewById(R.id.textViewMessageSender);
-            textViewMessageTimestamp = view.findViewById(R.id.textViewMessageTimestamp);
-            cardView = view.findViewById(R.id.card_view_message);
-        }
-    }
 
     public MessagesAdapter(ArrayList<Message> dataSet) {
         messages = dataSet;
@@ -74,13 +43,44 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.get(position).getTimestamp()));
         viewHolder.itemView.setOnClickListener(v -> {
         });
-        if(User.getEmail().equals(messages.get(position).getSenderEmail())){
-            
+        if (User.getEmail().equals(messages.get(position).getSenderEmail())) {
+
         }
     }
 
     @Override
     public int getItemCount() {
         return messages.size();
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        private final TextView textViewMessageContent;
+        private final TextView textViewMessageSender;
+        private final TextView textViewMessageTimestamp;
+        private final CardView cardView;
+
+        public ViewHolder(View view) {
+            super(view);
+            textViewMessageContent = view.findViewById(R.id.textViewMessageContent);
+            textViewMessageSender = view.findViewById(R.id.textViewMessageSender);
+            textViewMessageTimestamp = view.findViewById(R.id.textViewMessageTimestamp);
+            cardView = view.findViewById(R.id.card_view_message);
+        }
+
+        public CardView getLinearLayout() {
+            return cardView;
+        }
+
+        public TextView getTextViewMessageContent() {
+            return textViewMessageContent;
+        }
+
+        public TextView getTextViewMessageSender() {
+            return textViewMessageSender;
+        }
+
+        public TextView getTextViewMessageTimestamp() {
+            return textViewMessageTimestamp;
+        }
     }
 }

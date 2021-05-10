@@ -3,15 +3,21 @@ package com.chatter.classes;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import androidx.annotation.NonNull;
-
 import com.google.firebase.database.Exclude;
-
-import java.util.HashMap;
-import java.util.Iterator;
 
 public class Contact implements Parcelable {
 
+    public static final Creator<Contact> CREATOR = new Creator<Contact>() {
+        @Override
+        public Contact createFromParcel(Parcel in) {
+            return new Contact(in);
+        }
+
+        @Override
+        public Contact[] newArray(int size) {
+            return new Contact[size];
+        }
+    };
     private String email;
     @Exclude
     private String key;
@@ -23,9 +29,10 @@ public class Contact implements Parcelable {
         key = in.readString();
     }
 
-    private Contact(){}
+    private Contact() {
+    }
 
-    public Contact(String key, String email){
+    public Contact(String key, String email) {
         this.email = email;
         this.key = key;
     }
@@ -40,18 +47,6 @@ public class Contact implements Parcelable {
     public int describeContents() {
         return 0;
     }
-
-    public static final Creator<Contact> CREATOR = new Creator<Contact>() {
-        @Override
-        public Contact createFromParcel(Parcel in) {
-            return new Contact(in);
-        }
-
-        @Override
-        public Contact[] newArray(int size) {
-            return new Contact[size];
-        }
-    };
 
     @Exclude
     public String getKey() {
@@ -70,10 +65,13 @@ public class Contact implements Parcelable {
         this.email = email;
     }
 
-    public void select(){
+    public void select() {
         this.selected = !this.selected;
     }
+
     @Exclude
-    public boolean isSelected(){return selected;}
+    public boolean isSelected() {
+        return selected;
+    }
 
 }

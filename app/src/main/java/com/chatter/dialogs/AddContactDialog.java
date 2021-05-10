@@ -42,7 +42,7 @@ public class AddContactDialog extends Dialog implements
         setContentView(R.layout.dialog_add_contact);
 
         buttonAddContact = findViewById(R.id.button_add_contact);
-        buttonCancel= findViewById(R.id.button_cancel_add_contact);
+        buttonCancel = findViewById(R.id.button_cancel_add_contact);
         buttonAddContact.setOnClickListener(this);
         buttonCancel.setOnClickListener(this);
     }
@@ -84,9 +84,8 @@ public class AddContactDialog extends Dialog implements
                     DatabaseReference contactsRef = database.getReference("users").child(User.getKey()).child("contacts").child(userSnapshot.getKey()).child("email");
 
                     contactsRef.setValue(newContact.getEmail());
-                }
-                else {
-                    Toast.makeText(v.getContext(), "Emailul introdus este gresit sau utilizatorul nu este inregistrat in aplicatie!",Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(v.getContext(), "Emailul introdus este gresit sau utilizatorul nu este inregistrat in aplicatie!", Toast.LENGTH_LONG).show();
                 }
             }
 

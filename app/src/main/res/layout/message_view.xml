@@ -4,10 +4,10 @@
     android:id="@+id/layout_message_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_alignParentEnd="true"
     android:clickable="true"
     android:focusable="true"
-    android:orientation="vertical"
-    android:layout_alignParentEnd="true">
+    android:orientation="vertical">
 
     <Space
         android:layout_width="match_parent"
