@@ -35,7 +35,6 @@ import com.google.firebase.database.ValueEventListener;
 public class LoginActivity extends AppCompatActivity implements RegisterDialog.finishRegisterDialogListener {
     private static final int RC_SIGN_IN = 9001;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,12 +50,12 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
         GoogleSignInAccount accountGoogle = GoogleSignIn.getLastSignedInAccount(this);
         FirebaseUser mAuth = FirebaseAuth.getInstance().getCurrentUser();
 
+        if (mAuth != null) {
+            User.setEmail(mAuth.getEmail());
+        }
+
         if (accountGoogle != null) {
             User.setEmail(accountGoogle.getEmail());
-        } else {
-            if (mAuth != null) {
-                User.setEmail(mAuth.getEmail());
-            }
         }
 
         if (User.getEmail() == null) {
@@ -80,6 +79,7 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             assert account != null;
+
             User.setEmail(account.getEmail());
             userIsAuthenticated();
         } catch (ApiException e) {

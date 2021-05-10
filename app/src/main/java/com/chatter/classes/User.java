@@ -80,4 +80,11 @@ public class User {
     public static void removeContact(String contactKey) {
         contacts.removeIf(c -> c.getKey().equals(contactKey));
     }
+
+    public static void logOut(){
+        ArrayList<Contact> contacts = new ArrayList<>();
+        ArrayList<Conversation> conversations = new ArrayList<>();
+        key = null;
+        email = null;
+    }
 }
