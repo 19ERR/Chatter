@@ -68,7 +68,7 @@ public class Conversation implements Parcelable {
 
     public void setMessages(HashMap<String,Message> messages) {
         for (String key : messages.keySet()) {
-            messages.get(key).setSenderKey(key);
+            messages.get(key).setKey(key);
             this.messages.add(messages.get(key));
         }
     }

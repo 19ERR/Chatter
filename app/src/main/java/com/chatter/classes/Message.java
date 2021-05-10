@@ -11,20 +11,20 @@ public class Message implements Parcelable {
     @Exclude
     private String key;
     private String content;
-    private String senderKey;
+    private String senderEmail;
     private Date timestamp;
 
     protected Message(Parcel in) {
         key = in.readString();
         content = in.readString();
-        senderKey = in.readString();
+        senderEmail = in.readString();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(key);
         dest.writeString(content);
-        dest.writeString(senderKey);
+        dest.writeString(senderEmail);
     }
 
     @Override
@@ -53,9 +53,9 @@ public class Message implements Parcelable {
         this.key = key;
     }
 
-    public Message(String content, String senderKey){
+    public Message(String content, String senderEmail){
         this.content = content;
-        this.senderKey = senderKey;
+        this.senderEmail = senderEmail;
         this.timestamp = new Date();
     }
 
@@ -67,12 +67,12 @@ public class Message implements Parcelable {
         this.content = content;
     }
 
-    public String getSenderKey() {
-        return senderKey;
+    public String getSenderEmail() {
+        return senderEmail;
     }
 
-    public void setSenderKey(String senderKey) {
-        this.senderKey = senderKey;
+    public void setSenderEmail(String senderEmail) {
+        this.senderEmail = senderEmail;
     }
 
     public Date getTimestamp() {
