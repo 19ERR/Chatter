@@ -15,19 +15,10 @@ public class User {
     private static final ArrayList<Contact> contacts = new ArrayList<>();
     @Exclude
     private static final ArrayList<Conversation> conversations = new ArrayList<>();
-    @Exclude
-    private static String key;
+
     private static String email;
 
     private User() {
-    }
-
-    public static String getKey() {
-        return key;
-    }
-
-    public static void setKey(String key) {
-        User.key = key;
     }
 
     public static String getEmail() {
@@ -87,7 +78,6 @@ public class User {
         FirebaseAuth.getInstance().signOut();
         ArrayList<Contact> contacts = new ArrayList<>();
         ArrayList<Conversation> conversations = new ArrayList<>();
-        key = null;
         email = null;
     }
 

@@ -23,6 +23,7 @@ import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
@@ -43,7 +44,7 @@ public class ContactListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Contacts");
         }
 
-        Query query = FirebaseDatabase.getInstance().getReference("users").child(User.getKey()).child("contacts").limitToLast(100);
+        Query query = FirebaseDatabase.getInstance().getReference("users").child(FirebaseAuth.getInstance().getUid()).child("contacts").limitToLast(100);
 
         FirebaseRecyclerOptions<Contact> options =
                 new FirebaseRecyclerOptions.Builder<Contact>().setQuery(query, Contact.class).build();
@@ -78,7 +79,7 @@ public class ContactListActivity extends AppCompatActivity {
 
             //regasire lista de contacte cu chei
             ArrayList<Contact> conversationContacts = new ArrayList<>();
-            conversationContacts.add(new Contact(User.getKey(), User.getEmail()));
+            conversationContacts.add(new Contact(FirebaseAuth.getInstance().getUid(), User.getEmail()));
             for (Contact c : selectedContacts) {
                 Contact contact = User.getContacts().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
                 conversationContacts.add(contact);
@@ -99,7 +100,7 @@ public class ContactListActivity extends AppCompatActivity {
             DatabaseReference newConfRef = database.getReference("conversations").child(convRef.getKey());
             newConfRef.get().addOnCompleteListener(task -> {
                 //adaugas un mesag de sistem
-                Message newMessage = new Message("Conversatie creata", User.getKey());
+                Message newMessage = new Message("Conversatie creata", FirebaseAuth.getInstance().getUid());
                 DatabaseReference messagesRef = database.getReference().child("conversations").child(task.getResult().getKey()).child("messages").push();
                 messagesRef.setValue(newMessage);
 

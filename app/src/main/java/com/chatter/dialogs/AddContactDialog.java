@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import com.chatter.R;
 import com.chatter.classes.Contact;
 import com.chatter.classes.User;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -81,7 +82,7 @@ public class AddContactDialog extends Dialog implements
                     newContact.setKey(userSnapshot.getKey());
 
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference contactsRef = database.getReference("users").child(User.getKey()).child("contacts").child(userSnapshot.getKey()).child("email");
+                    DatabaseReference contactsRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid()).child("contacts").child(userSnapshot.getKey()).child("email");
 
                     contactsRef.setValue(newContact.getEmail());
                 } else {

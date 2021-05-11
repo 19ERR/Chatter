@@ -149,16 +149,14 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     DataSnapshot sn = snapshot.getChildren().iterator().next();
-                    User.setKey(sn.getKey());
+
                 } else {
                     DatabaseReference dbRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid());
                     dbRef.child("email").setValue(User.getEmail());
-                    User.setKey(dbRef.getKey());
                 }
-
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 //listener pentru contacte
-                DatabaseReference userContactsRef = database.getReference("users").child(User.getKey()).child("contacts");
+                DatabaseReference userContactsRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid()).child("contacts");
                 userContactsRef.addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
@@ -190,7 +188,7 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                 });
 
                 //listener pentru covnersatii
-                DatabaseReference userConvRef = database.getReference().child("users").child(User.getKey()).child("user_conversations").getRef();
+                DatabaseReference userConvRef = database.getReference().child("users").child(FirebaseAuth.getInstance().getUid()).child("user_conversations").getRef();
                 userConvRef.addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
