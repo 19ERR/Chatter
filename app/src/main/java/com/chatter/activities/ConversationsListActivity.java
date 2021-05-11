@@ -9,15 +9,19 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
+import com.chatter.adapters.ContactsAdapter;
 import com.chatter.adapters.ConversationsAdapter;
+import com.chatter.classes.Contact;
+import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
-import com.chatter.recyclerViews.ConversationsRecyclerView;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -26,6 +30,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
@@ -47,14 +57,24 @@ public class ConversationsListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        ConversationsAdapter conversationsAdapter = new ConversationsAdapter();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference convRef = database.getReference("conversations");
+
+        Query query = convRef.orderByKey();
+
+        FirebaseRecyclerOptions<Conversation> options =
+                new FirebaseRecyclerOptions.Builder<Conversation>().setQuery(query, Conversation.class).build();
+        ConversationsAdapter conversationsAdapter = new ConversationsAdapter(options);
+        conversationsAdapter.startListening();
+
         RecyclerView recyclerView;
         recyclerView = findViewById(R.id.recycle_conversation_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(conversationsAdapter);
-
     }
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -95,30 +115,8 @@ public class ConversationsListActivity extends AppCompatActivity {
                 break;
 
             case R.id.menuLogout:
-                FirebaseAuth mAuth = FirebaseAuth.getInstance();
-                GoogleSignInAccount accountGoogle = GoogleSignIn.getLastSignedInAccount(this);
-
-                if(mAuth.getCurrentUser() != null) {
-                    mAuth.signOut();
-                }
-                if(accountGoogle != null){
-                    GoogleSignInClient mGoogleSignInClient;
-                    GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestEmail()
-                            .build();
-                    mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-                    mGoogleSignInClient.signOut()
-                            .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    // ...
-                                }
-                            });
-                }
-
                 User.logOut();
                 finish();
-                Toast.makeText(this, "You clicked logout", Toast.LENGTH_SHORT).show();
                 break;
 
         }

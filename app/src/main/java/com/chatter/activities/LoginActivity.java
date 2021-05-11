@@ -23,9 +23,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -49,20 +51,10 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
 
     protected void onStart() {
         super.onStart();
-        GoogleSignInAccount accountGoogle = GoogleSignIn.getLastSignedInAccount(this);
-        FirebaseUser mAuth = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser mUser= FirebaseAuth.getInstance().getCurrentUser();
 
-        if (mAuth != null) {
-            User.setEmail(mAuth.getEmail());
-        }
-
-        if (accountGoogle != null) {
-            User.setEmail(accountGoogle.getEmail());
-        }
-
-        if (User.getEmail() == null) {
-            userNotAuthenticated();
-        } else {
+        if (mUser != null) {
+            User.setEmail(mUser.getEmail());
             userIsAuthenticated();
         }
     }
@@ -73,25 +65,35 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
 
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            handleSignInResult(task);
+            handleSignInResultGoogle(task);
         }
     }
 
-    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+    private void handleSignInResultGoogle(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             assert account != null;
-
             User.setEmail(account.getEmail());
-            userIsAuthenticated();
+
+            AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+            FirebaseAuth.getInstance().signInWithCredential(credential)
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                userIsAuthenticated();
+                            } else {
+                                userNotAuthenticated();
+                            }
+                        }
+                    });
         } catch (ApiException e) {
             userNotAuthenticated();
         }
     }
 
     private void signInPassword() {
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-
         EditText editTextEmailLogIn = findViewById(R.id.editTextEmailLogIn);
         EditText editTextPasswordLogIn = findViewById(R.id.editTextPasswordLogIn);
 
@@ -107,10 +109,10 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
             return;
         }
 
-        mAuth.signInWithEmailAndPassword(emailLogIn, passwordLogIn)
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(emailLogIn, passwordLogIn)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         assert user != null;
                         User.setEmail(user.getEmail());
                         userIsAuthenticated();
@@ -123,6 +125,7 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
     private void signInGoogle() {
         GoogleSignInClient mGoogleSignInClient;
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("186499421544-fh9ihal6cna3nn3e7me077ged45i6kts.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
@@ -136,7 +139,7 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         //database.setPersistenceEnabled(true);
-        DatabaseReference usersRef = database.getReference("users");
+        DatabaseReference usersRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid());
 
         //cauta utilizatorul in users
         Query query = usersRef.orderByChild("email").equalTo(User.getEmail()).limitToFirst(1);
@@ -148,7 +151,7 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                     DataSnapshot sn = snapshot.getChildren().iterator().next();
                     User.setKey(sn.getKey());
                 } else {
-                    DatabaseReference dbRef = database.getReference("users").push();
+                    DatabaseReference dbRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid());
                     dbRef.child("email").setValue(User.getEmail());
                     User.setKey(dbRef.getKey());
                 }
@@ -267,7 +270,6 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
     }
@@ -285,6 +287,6 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
     public void onFinishRegisterDialog(String newUserEmail) {
         User.setEmail(newUserEmail);
         Toast.makeText(this, "Hi, " + User.getEmail(), Toast.LENGTH_SHORT).show();
-        userIsAuthenticated();
+        //userIsAuthenticated();
     }
 }

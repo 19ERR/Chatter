@@ -1,5 +1,6 @@
 package com.chatter.classes;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.Exclude;
 
 import java.nio.channels.Channel;
@@ -83,6 +84,7 @@ public class User {
     }
 
     public static void logOut(){
+        FirebaseAuth.getInstance().signOut();
         ArrayList<Contact> contacts = new ArrayList<>();
         ArrayList<Conversation> conversations = new ArrayList<>();
         key = null;
