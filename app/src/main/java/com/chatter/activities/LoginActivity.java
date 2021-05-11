@@ -12,6 +12,8 @@ import androidx.fragment.app.FragmentManager;
 
 import com.chatter.R;
 import com.chatter.classes.Contact;
+import com.chatter.classes.Conversation;
+import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.chatter.dialogs.RegisterDialog;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -136,7 +138,9 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
         //database.setPersistenceEnabled(true);
         DatabaseReference usersRef = database.getReference("users");
 
+        //cauta utilizatorul in users
         Query query = usersRef.orderByChild("email").equalTo(User.getEmail()).limitToFirst(1);
+        //cand in gaseste adauga listener pentru a lua valorile initiale
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -150,6 +154,7 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                 }
 
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
+                //listener pentru contacte
                 DatabaseReference userContactsRef = database.getReference("users").child(User.getKey()).child("contacts");
                 userContactsRef.addChildEventListener(new ChildEventListener() {
                     @Override
@@ -181,6 +186,82 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                     }
                 });
 
+                //listener pentru covnersatii
+                DatabaseReference userConvRef = database.getReference().child("users").child(User.getKey()).child("user_conversations").getRef();
+                userConvRef.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
+                        //pentru fiecare conversatie care apare se preia cheia
+                        String value = userConversationSnapshot.getValue(String.class);
+                        //referinta catre conversatie din root-ul "conversations"
+                        DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
+
+                        //pentru fiecare conversatie aparuta, preia datele
+                        conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
+                                Conversation c = conversationSnapshot.getValue(Conversation.class);
+                                c.setKey(conversationSnapshot.getKey());
+                                User.getConversations().add(c);
+                                //listener pentru mesaje pe fiecare conversatie
+                                DatabaseReference messagesRef = database.getReference().child("conversations").child(value).child("messages").getRef();
+                                messagesRef.addChildEventListener(new ChildEventListener() {
+                                    @Override
+                                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                        Message message = snapshot.getValue(Message.class);
+                                        message.setKey(snapshot.getKey());
+                                        c.getMessagesList().add(message);
+                                    }
+
+                                    @Override
+                                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                                    }
+
+                                    @Override
+                                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
                 startActivity(intent);
             }
 

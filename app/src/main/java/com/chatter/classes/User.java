@@ -2,6 +2,7 @@ package com.chatter.classes;
 
 import com.google.firebase.database.Exclude;
 
+import java.nio.channels.Channel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,4 +88,5 @@ public class User {
         key = null;
         email = null;
     }
+
 }

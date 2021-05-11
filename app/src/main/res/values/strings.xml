@@ -20,4 +20,5 @@
     <string name="cancel_conversation_title">Anulare</string>
     <string name="login_password_confirm">Confirmati parola</string>
     <string name="login_cancel">Anulare</string>
+    <string name="action_search">Cautare</string>
 </resources>
