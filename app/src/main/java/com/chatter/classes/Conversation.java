@@ -10,23 +10,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Conversation implements Parcelable {
-    public static final Creator<Conversation> CREATOR = new Creator<Conversation>() {
-        @Override
-        public Conversation createFromParcel(Parcel in) {
-            return new Conversation(in);
-        }
-
-        @Override
-        public Conversation[] newArray(int size) {
-            return new Conversation[size];
-        }
-    };
     @Exclude
     private String key;
     private String name;
     private ArrayList<Contact> participants = new ArrayList<>();
-    @Exclude
-    private ArrayList<Message> messages = new ArrayList<>();
+
+    public Message getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(Message lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
+    private Message lastMessage;
 
     public Conversation(String name, ArrayList<Contact> participants) {
         this.name = name;
@@ -40,8 +37,33 @@ public class Conversation implements Parcelable {
         key = in.readString();
         name = in.readString();
         participants = in.createTypedArrayList(Contact.CREATOR);
-        messages = in.createTypedArrayList(Message.CREATOR);
+        lastMessage = in.readParcelable(Message.class.getClassLoader());
     }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(key);
+        dest.writeString(name);
+        dest.writeTypedList(participants);
+        dest.writeParcelable(lastMessage, flags);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Conversation> CREATOR = new Creator<Conversation>() {
+        @Override
+        public Conversation createFromParcel(Parcel in) {
+            return new Conversation(in);
+        }
+
+        @Override
+        public Conversation[] newArray(int size) {
+            return new Conversation[size];
+        }
+    };
 
     public String getKey() {
         return key;
@@ -79,42 +101,6 @@ public class Conversation implements Parcelable {
     @Exclude
     public ArrayList<Contact> getParticipantsList() {
         return this.participants;
-    }
-
-    @Exclude
-    public Map<String, Object> getMessages() {
-        Map<String, Object> messagesHashMap = new HashMap<>();
-        for (Message m :
-                this.messages) {
-            messagesHashMap.put(m.getKey(), m);
-        }
-
-        return messagesHashMap;
-    }
-
-    public void setMessages(HashMap<String, Message> messages) {
-        for (String key : messages.keySet()) {
-            messages.get(key).setKey(key);
-            this.messages.add(messages.get(key));
-        }
-    }
-
-    @Exclude
-    public ArrayList<Message> getMessagesList() {
-        return messages;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(key);
-        dest.writeString(name);
-        dest.writeTypedList(participants);
-        dest.writeTypedList(messages);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
     }
 
 

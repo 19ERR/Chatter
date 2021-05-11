@@ -204,36 +204,6 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                                 Conversation c = conversationSnapshot.getValue(Conversation.class);
                                 c.setKey(conversationSnapshot.getKey());
                                 User.getConversations().add(c);
-                                //listener pentru mesaje pe fiecare conversatie
-                                DatabaseReference messagesRef = database.getReference().child("conversations").child(value).child("messages").getRef();
-                                messagesRef.addChildEventListener(new ChildEventListener() {
-                                    @Override
-                                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                                        Message message = snapshot.getValue(Message.class);
-                                        message.setKey(snapshot.getKey());
-                                        c.getMessagesList().add(message);
-                                    }
-
-                                    @Override
-                                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                                    }
-
-                                    @Override
-                                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-                                    }
-
-                                    @Override
-                                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
                             }
 
                             @Override
@@ -285,6 +255,6 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
     public void onFinishRegisterDialog(String newUserEmail) {
         User.setEmail(newUserEmail);
         Toast.makeText(this, "Hi, " + User.getEmail(), Toast.LENGTH_SHORT).show();
-        //userIsAuthenticated();
+        userIsAuthenticated();
     }
 }

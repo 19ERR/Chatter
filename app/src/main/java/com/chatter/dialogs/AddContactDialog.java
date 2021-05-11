@@ -92,7 +92,6 @@ public class AddContactDialog extends Dialog implements
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
     }

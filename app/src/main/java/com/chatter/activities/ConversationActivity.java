@@ -37,7 +37,7 @@ public class ConversationActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        this.messagesAdapter = new MessagesAdapter(User.getConversation(conversationKey).getMessagesList());
+        /*this.messagesAdapter = new MessagesAdapter(User.getConversation(conversationKey).getMessagesList());
         RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -54,7 +54,7 @@ public class ConversationActivity extends AppCompatActivity {
             convRef.setValue(newMessage);
             inputEditTextMessage.setText("");
         });
-
+*/
 
         //listener care sa notifice adapterul pentru mesaje noi
         /*FirebaseDatabase database = FirebaseDatabase.getInstance();

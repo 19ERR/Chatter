@@ -8,31 +8,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
-import com.chatter.adapters.ContactsAdapter;
 import com.chatter.adapters.ConversationsAdapter;
-import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
@@ -60,7 +46,7 @@ public class ConversationsListActivity extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference convRef = database.getReference("conversations");
 
-        Query query = convRef.orderByKey();
+        /*Query query = convRef.orderByKey();
 
         FirebaseRecyclerOptions<Conversation> options =
                 new FirebaseRecyclerOptions.Builder<Conversation>().setQuery(query, Conversation.class).build();
@@ -71,16 +57,14 @@ public class ConversationsListActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycle_conversation_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(conversationsAdapter);
+        recyclerView.setAdapter(conversationsAdapter);*/
     }
-
 
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == RC_ADD_CONVERSATION) {
+        if (requestCode == RC_ADD_CONVERSATION && resultCode == 1) {
             String conversation_key = data.getStringExtra("conversation_key");
             openConversation(conversation_key);
         }
@@ -99,7 +83,6 @@ public class ConversationsListActivity extends AppCompatActivity {
 
         return true;
     }
-
 
     @SuppressLint("NonConstantResourceId")
     @Override

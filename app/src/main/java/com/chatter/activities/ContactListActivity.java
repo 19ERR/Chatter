@@ -7,10 +7,16 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
+
 import androidx.appcompat.widget.SearchView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.OnLifecycleEvent;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,6 +27,7 @@ import com.chatter.classes.Conversation;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
+import com.chatter.dialogs.InsertConversationTitleDialog;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,7 +37,7 @@ import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
 
-public class ContactListActivity extends AppCompatActivity {
+public class ContactListActivity extends AppCompatActivity implements  InsertConversationTitleDialog.finishTitleInsertionDialogListener{
     RecyclerView recyclerView;
 
     @Override
@@ -57,63 +64,87 @@ public class ContactListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         FloatingActionButton buttonStartConversation = findViewById(R.id.button_start_conversation);
-        buttonStartConversation.setOnClickListener(v -> {
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            ArrayList<Contact> selectedContacts = ContactsAdapter.selectedContacts;
-
-            Conversation newConversation;
-            String newConversationName = "";
-
-            if (selectedContacts.size() == 1) {
-                newConversation = User.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
-
-                if (newConversation == null) {
-                    newConversationName = "private";
-                }
-            } else {
-                //TODO:popup pentru numele conversatiei
-                //InsertConversationNameDialog insertConversationNameDialog =new InsertConversationNameDialog(this);
-                //insertConversationNameDialog.show();
-                newConversationName = "Conversatie noua";
-            }
-
-            //regasire lista de contacte cu chei
-            ArrayList<Contact> conversationContacts = new ArrayList<>();
-            conversationContacts.add(new Contact(FirebaseAuth.getInstance().getUid(), User.getEmail()));
-            for (Contact c : selectedContacts) {
-                Contact contact = User.getContacts().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
-                conversationContacts.add(contact);
-            }
-
-            newConversation = new Conversation(newConversationName, conversationContacts);
-
-            DatabaseReference convRef = database.getReference("conversations").push();
-            convRef.setValue(newConversation);
-            newConversation.setKey(convRef.getKey());
-
-            //adaugare in lista utilizatorilor
-            for (Contact c : conversationContacts) {
-                DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
-                userConvRef.setValue(convRef.getKey());
-            }
-
-            DatabaseReference newConfRef = database.getReference("conversations").child(convRef.getKey());
-            newConfRef.get().addOnCompleteListener(task -> {
-                //adaugas un mesag de sistem
-                Message newMessage = new Message("Conversatie creata", FirebaseAuth.getInstance().getUid());
-                DatabaseReference messagesRef = database.getReference().child("conversations").child(task.getResult().getKey()).child("messages").push();
-                messagesRef.setValue(newMessage);
-
-                Intent data = new Intent();
-                Activity activity = ((ContactListActivity) v.getContext());
-                data.putExtra("conversation_key", task.getResult().getKey());
-                activity.setResult(1, data);
-                activity.finish();
-            });
-        });
+        buttonStartConversation.setOnClickListener(v -> startNewConversation());
     }
 
+    public void startNewConversation(){
+        String newConversationName = "";
+        ArrayList<Contact> selectedContacts = ContactsAdapter.selectedContacts;
 
+        if (selectedContacts.size() == 1) {
+            Conversation newConversation = User.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
+
+            //daca nu exista conversatie existenta
+            if (newConversation == null) {
+                newConversationName = "private";
+                createConversation(newConversationName);
+            } else {
+                //daca exista du-l la ea
+                Intent data = new Intent();
+                data.putExtra("conversation_key", newConversation.getKey());
+                this.setResult(1, data);
+                this.finish();
+            }
+        } else {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            InsertConversationTitleDialog insertConversationTitleDialog = InsertConversationTitleDialog.newInstance();
+            insertConversationTitleDialog.show(fragmentManager, "conversation_title");
+        }
+    }
+
+    public void createConversation(String newConversationName){
+        ArrayList<Contact> selectedContacts = ContactsAdapter.selectedContacts;
+        //regasire lista de contacte cu chei
+        ArrayList<Contact> conversationContacts = new ArrayList<>();
+        conversationContacts.add(new Contact(FirebaseAuth.getInstance().getUid(), User.getEmail()));
+        for (Contact c : selectedContacts) {
+            Contact contact = User.getContacts().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
+            conversationContacts.add(contact);
+        }
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        Conversation newConversation;
+        newConversation = new Conversation(newConversationName, conversationContacts);
+
+        DatabaseReference convRef = database.getReference("conversations").push();
+        convRef.setValue(newConversation);
+        newConversation.setKey(convRef.getKey());
+
+        //adaugare in lista utilizatorilor
+        for (Contact c : conversationContacts) {
+            DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
+            userConvRef.setValue(convRef.getKey());
+        }
+
+        DatabaseReference newConvRef = database.getReference("conversations").child(convRef.getKey());
+        newConvRef.get().addOnCompleteListener(task -> {
+            //adaugas un mesag de sistem pentru a evita erori la initierea cu valori null ale adapterului din
+            //conversation activity
+            Message newMessage = new Message("Conversatie creata", FirebaseAuth.getInstance().getUid());
+            DatabaseReference messagesRef = database.getReference().child("messages").child(task.getResult().getKey()).child("messages").push();
+            messagesRef.setValue(newMessage);
+
+            DatabaseReference lastMessageConversationRef = database.getReference().child("conversations").child(task.getResult().getKey()).child("last_message");
+            lastMessageConversationRef.setValue(newMessage);
+
+            Intent data = new Intent();
+            data.putExtra("conversation_key", task.getResult().getKey());
+            this.setResult(1, data);
+            this.finish();
+        });
+    }
+    @Override
+    public void onFinishTitleInsertionDialog(String newConversationTitle) {
+        createConversation(newConversationTitle);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    public void returnNull() {
+        Intent data = new Intent();
+        data.putExtra("conversation_key", "null");
+        this.setResult(0, data);
+        this.finish();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
@@ -149,5 +180,4 @@ public class ContactListActivity extends AppCompatActivity {
         }
         return true;
     }
-
 }
