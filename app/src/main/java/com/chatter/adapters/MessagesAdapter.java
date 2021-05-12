@@ -70,7 +70,7 @@ public class MessagesAdapter extends FirebaseRecyclerAdapter<Message, MessagesAd
 
         recyclerView.smoothScrollToPosition(getItemCount());
 
-        if(!message.getMediaKey().isEmpty()) {
+        if(message.getMediaKey()!=null) {
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference imageRef = storage.getReference().child(message.getMediaKey());
 

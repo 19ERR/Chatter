@@ -3,6 +3,7 @@ package com.chatter.dialogs;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -11,10 +12,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.chatter.R;
 import com.chatter.classes.Contact;
-import com.chatter.classes.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -23,17 +24,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-public class AddContactDialog extends Dialog implements
-        android.view.View.OnClickListener {
-
-    public Activity c;
-    public Dialog d;
-    public Button buttonAddContact, buttonCancel;
+public class AddContactDialog extends Dialog {
     String newContactEmail;
 
-    public AddContactDialog(Activity a) {
-        super(a);
-        this.c = a;
+    Context context;
+
+    public AddContactDialog(@NonNull Context context) {
+        super(context);
+        this.context = context;
     }
 
     @Override
@@ -42,29 +40,13 @@ public class AddContactDialog extends Dialog implements
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog_add_contact);
 
-        buttonAddContact = findViewById(R.id.button_add_contact);
-        buttonCancel = findViewById(R.id.button_cancel_add_contact);
-        buttonAddContact.setOnClickListener(this);
-        buttonCancel.setOnClickListener(this);
+        Button buttonAddContact = findViewById(R.id.button_add_contact);
+        Button buttonCancel = findViewById(R.id.button_cancel_add_contact);
+        buttonAddContact.setOnClickListener(v->addContact());
+        buttonCancel.setOnClickListener(v->dismiss());
     }
 
-    @SuppressLint("NonConstantResourceId")
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.button_add_contact:
-                addContact(v);
-                break;
-            case R.id.button_cancel_add_contact:
-                dismiss();
-                break;
-            default:
-                break;
-        }
-        dismiss();
-    }
-
-    private void addContact(View v) {
+    private void addContact() {
         EditText editTextEmail = findViewById(R.id.edit_text_new_contact_email);
         newContactEmail = editTextEmail.getText().toString();
 
@@ -86,7 +68,7 @@ public class AddContactDialog extends Dialog implements
 
                     contactsRef.setValue(newContact.getEmail());
                 } else {
-                    Toast.makeText(v.getContext(), "Emailul introdus este gresit sau utilizatorul nu este inregistrat in aplicatie!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Emailul introdus este gresit sau utilizatorul nu este inregistrat in aplicatie!", Toast.LENGTH_LONG).show();
                 }
             }
 
