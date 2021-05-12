@@ -1,55 +1,37 @@
 package com.chatter.classes;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.net.Uri;
+import android.widget.ImageView;
 
 import com.google.firebase.database.Exclude;
 
 import java.util.Date;
 
-public class Message implements Parcelable {
-    public static final Creator<Message> CREATOR = new Creator<Message>() {
-        @Override
-        public Message createFromParcel(Parcel in) {
-            return new Message(in);
-        }
-
-        @Override
-        public Message[] newArray(int size) {
-            return new Message[size];
-        }
-    };
+public class Message {
     @Exclude
     private String key;
-    private String content;
+    private String textContent ="";
     private String senderEmail;
     private Date timestamp;
+    private String mediaKey;
 
-    protected Message(Parcel in) {
-        key = in.readString();
-        content = in.readString();
-        senderEmail = in.readString();
+    public String getMediaKey() {
+        return mediaKey;
     }
 
-    public Message(String content, String senderEmail) {
-        this.content = content;
+    public void setMediaKey(String mediaKey) {
+        this.mediaKey = mediaKey;
+    }
+
+
+    public Message(String textContent, String mediaKey, String senderEmail) {
+        this.textContent = textContent;
+        this.mediaKey = mediaKey;
         this.senderEmail = senderEmail;
         this.timestamp = new Date();
     }
 
     private Message() {
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(key);
-        dest.writeString(content);
-        dest.writeString(senderEmail);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
     }
 
     @Exclude
@@ -61,12 +43,12 @@ public class Message implements Parcelable {
         this.key = key;
     }
 
-    public String getContent() {
-        return content;
+    public String getTextContent() {
+        return textContent;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setTextContent(String textContent) {
+        this.textContent = textContent;
     }
 
     public String getSenderEmail() {

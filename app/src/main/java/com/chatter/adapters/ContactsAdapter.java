@@ -64,4 +64,5 @@ public class ContactsAdapter extends FirebaseRecyclerAdapter<Contact, ContactsAd
             return textView;
         }
     }
+    
 }

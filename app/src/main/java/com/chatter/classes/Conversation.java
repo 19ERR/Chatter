@@ -1,16 +1,12 @@
 package com.chatter.classes;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-import com.google.android.gms.common.data.DataBufferObserver;
 import com.google.firebase.database.Exclude;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Conversation implements Parcelable {
+public class Conversation {
     @Exclude
     private String key;
     private String name;
@@ -25,38 +21,6 @@ public class Conversation implements Parcelable {
 
     private Conversation() {
     }
-
-    protected Conversation(Parcel in) {
-        key = in.readString();
-        name = in.readString();
-        participants = in.createTypedArrayList(Contact.CREATOR);
-        lastMessage = in.readParcelable(Message.class.getClassLoader());
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(key);
-        dest.writeString(name);
-        dest.writeTypedList(participants);
-        dest.writeParcelable(lastMessage, flags);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    public static final Creator<Conversation> CREATOR = new Creator<Conversation>() {
-        @Override
-        public Conversation createFromParcel(Parcel in) {
-            return new Conversation(in);
-        }
-
-        @Override
-        public Conversation[] newArray(int size) {
-            return new Conversation[size];
-        }
-    };
 
     public String getKey() {
         return key;

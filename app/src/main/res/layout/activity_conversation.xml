@@ -37,8 +37,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/buttonSendMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/editTextMessage"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_menu_send"
+            tools:ignore="ContentDescription" />
+
         <EditText
-            android:id="@+id/edit_text_message"
+            android:id="@+id/editTextMessage"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:autofillHints="Type somenthing..."
@@ -46,22 +58,22 @@
             android:gravity="start|top"
             android:inputType="textMultiLine"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button_send_message"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/buttonSendMessage"
+            app:layout_constraintStart_toEndOf="@+id/buttonTakePhoto"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.92"
+            app:layout_constraintVertical_bias="0.0"
             tools:ignore="LabelFor" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/button_send_message"
+            android:id="@+id/buttonTakePhoto"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
             android:clickable="true"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/edit_text_message"
+            app:layout_constraintEnd_toStartOf="@+id/editTextMessage"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_send"
+            app:srcCompat="@android:drawable/ic_menu_camera"
             tools:ignore="ContentDescription" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
