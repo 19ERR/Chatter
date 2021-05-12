@@ -187,53 +187,8 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                     }
                 });
 
-                //listener pentru covnersatii
-                DatabaseReference userConvRef = database.getReference().child("users").child(FirebaseAuth.getInstance().getUid()).child("user_conversations").getRef();
-                userConvRef.addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
-                        //pentru fiecare conversatie care apare se preia cheia
-                        String value = userConversationSnapshot.getValue(String.class);
-                        //referinta catre conversatie din root-ul "conversations"
-                        DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
-
-                        //pentru fiecare conversatie aparuta, preia datele
-                        conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
-                                Conversation c = conversationSnapshot.getValue(Conversation.class);
-                                c.setKey(conversationSnapshot.getKey());
-                                User.getConversations().add(c);
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
                 startActivity(intent);
+
             }
 
             @Override

@@ -104,7 +104,8 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         Conversation newConversation;
-        newConversation = new Conversation(newConversationName, conversationContacts);
+        Message newMessage = new Message("Conversatie creata", User.getEmail());
+        newConversation = new Conversation(newConversationName, conversationContacts, newMessage);
 
         DatabaseReference convRef = database.getReference("conversations").push();
         convRef.setValue(newConversation);
@@ -120,11 +121,11 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         newConvRef.get().addOnCompleteListener(task -> {
             //adaugas un mesag de sistem pentru a evita erori la initierea cu valori null ale adapterului din
             //conversation activity
-            Message newMessage = new Message("Conversatie creata", FirebaseAuth.getInstance().getUid());
-            DatabaseReference messagesRef = database.getReference().child("messages").child(task.getResult().getKey()).child("messages").push();
+
+            DatabaseReference messagesRef = database.getReference().child("messages").child(task.getResult().getKey()).push();
             messagesRef.setValue(newMessage);
 
-            DatabaseReference lastMessageConversationRef = database.getReference().child("conversations").child(task.getResult().getKey()).child("last_message");
+            DatabaseReference lastMessageConversationRef = database.getReference().child("conversations").child(task.getResult().getKey()).child("lastMessage");
             lastMessageConversationRef.setValue(newMessage);
 
             Intent data = new Intent();

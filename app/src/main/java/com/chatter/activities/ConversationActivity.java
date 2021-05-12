@@ -14,12 +14,15 @@ import com.chatter.R;
 import com.chatter.adapters.MessagesAdapter;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 public class ConversationActivity extends AppCompatActivity {
@@ -37,12 +40,6 @@ public class ConversationActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        /*this.messagesAdapter = new MessagesAdapter(User.getConversation(conversationKey).getMessagesList());
-        RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(this.messagesAdapter);
-
         FloatingActionButton button = findViewById(R.id.button_send_message);
         button.setOnClickListener(v -> {
             EditText inputEditTextMessage = findViewById(R.id.edit_text_message);
@@ -50,11 +47,26 @@ public class ConversationActivity extends AppCompatActivity {
 
             Message newMessage = new Message(messageContent, User.getEmail());
             FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference convRef = database.getReference().child("conversations").child(User.getConversation(conversationKey).getKey()).child("messages").push();
+            DatabaseReference convRef = database.getReference().child("messages").child(conversationKey).push();
             convRef.setValue(newMessage);
             inputEditTextMessage.setText("");
         });
-*/
+
+        Query query = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("messages").child(conversationKey)
+                .limitToLast(50);
+        FirebaseRecyclerOptions<Message> options =
+                new FirebaseRecyclerOptions.Builder<Message>()
+                        .setQuery(query, Message.class)
+                        .build();
+        MessagesAdapter adapter = new MessagesAdapter(options,this);
+        adapter.startListening();
+        RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
 
         //listener care sa notifice adapterul pentru mesaje noi
         /*FirebaseDatabase database = FirebaseDatabase.getInstance();

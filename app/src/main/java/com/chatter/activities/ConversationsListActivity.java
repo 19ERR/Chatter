@@ -8,6 +8,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,14 +19,23 @@ import com.chatter.R;
 import com.chatter.adapters.ConversationsAdapter;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.Objects;
 
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
+    ConversationsAdapter conversationsAdapter;
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,23 +54,65 @@ public class ConversationsListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Conversatii");
         }
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference convRef = database.getReference("conversations");
+        conversationsAdapter = new ConversationsAdapter();
 
-        /*Query query = convRef.orderByKey();
-
-        FirebaseRecyclerOptions<Conversation> options =
-                new FirebaseRecyclerOptions.Builder<Conversation>().setQuery(query, Conversation.class).build();
-        ConversationsAdapter conversationsAdapter = new ConversationsAdapter(options);
-        conversationsAdapter.startListening();
-
-        RecyclerView recyclerView;
         recyclerView = findViewById(R.id.recycle_conversation_list);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(conversationsAdapter);*/
-    }
+        recyclerView.setAdapter(conversationsAdapter);
 
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference conversationsRef = database.getReference();
+        //listener pentru covnersatii
+        DatabaseReference userConvRef = database.getReference().child("users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).child("user_conversations").getRef();
+        userConvRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
+                //pentru fiecare conversatie care apare se preia cheia
+                String value = userConversationSnapshot.getValue(String.class);
+                //referinta catre conversatie din root-ul "conversations"
+                assert value != null;
+                DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
+
+                //pentru fiecare conversatie aparuta, preia datele
+                conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
+                        Conversation c = conversationSnapshot.getValue(Conversation.class);
+                        assert c != null;
+                        c.setKey(conversationSnapshot.getKey());
+                        User.getConversations().add(c);
+                        conversationsAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

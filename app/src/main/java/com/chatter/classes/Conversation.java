@@ -3,6 +3,7 @@ package com.chatter.classes;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.android.gms.common.data.DataBufferObserver;
 import com.google.firebase.database.Exclude;
 
 import java.util.ArrayList;
@@ -13,21 +14,13 @@ public class Conversation implements Parcelable {
     @Exclude
     private String key;
     private String name;
+    private Message lastMessage;
     private ArrayList<Contact> participants = new ArrayList<>();
 
-    public Message getLastMessage() {
-        return lastMessage;
-    }
-
-    public void setLastMessage(Message lastMessage) {
-        this.lastMessage = lastMessage;
-    }
-
-    private Message lastMessage;
-
-    public Conversation(String name, ArrayList<Contact> participants) {
+    public Conversation(String name, ArrayList<Contact> participants, Message lastMessage) {
         this.name = name;
         this.participants = participants;
+        this.lastMessage = lastMessage;
     }
 
     private Conversation() {
@@ -98,10 +91,20 @@ public class Conversation implements Parcelable {
         }
     }
 
+    public void setParticipantsList(ArrayList<Contact> participants) {
+        this.participants = participants;
+    }
     @Exclude
     public ArrayList<Contact> getParticipantsList() {
         return this.participants;
     }
 
+    public Message getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(Message lastMessage) {
+        this.lastMessage = lastMessage;
+    }
 
 }

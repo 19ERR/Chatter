@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,15 +13,16 @@ import com.chatter.R;
 import com.chatter.activities.ConversationActivity;
 import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
-import com.chatter.classes.Message;
 import com.chatter.classes.User;
+
+import java.util.ArrayList;
 
 
 public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdapter.ViewHolder> {
-
+    private final ArrayList<Conversation> conversations;
     public ConversationsAdapter() {
+        this.conversations = User.getConversations();
     }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
@@ -34,7 +34,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
-        Conversation conversation = User.getConversations().get(position);
+        Conversation conversation = this.conversations.get(position);
         if (conversation.getParticipantsList().size() == 2) {
             for (Contact contact : conversation.getParticipantsList()) {
                 if (!contact.getEmail().equals(User.getEmail())) {
@@ -46,19 +46,14 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
             viewHolder.getTextViewConversationTitle().setText(conversation.getName());
         }
 
-        if (!conversation.getMessagesList().isEmpty()) {
-            Message lastMessage = conversation.getMessagesList().get(conversation.getMessagesList().size() - 1);
-            viewHolder.getTextViewLastMessageSender().setText(lastMessage.getSenderEmail());
-            viewHolder.getTextViewLastMessageContent().setText(lastMessage.getContent());
-        }
-
+        viewHolder.getTextViewLastMessageSender().setText(conversation.getLastMessage().getSenderEmail());
+        viewHolder.getTextViewLastMessageContent().setText(conversation.getLastMessage().getContent());
 
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), User.getConversations().get(position).getName(), Toast.LENGTH_SHORT).show();
                 Intent openConversationIntent = new Intent(v.getContext(), ConversationActivity.class);
-                openConversationIntent.putExtra("conversation_key", User.getConversations().get(position).getKey());
+                openConversationIntent.putExtra("conversation_key", conversation.getKey());
                 v.getContext().startActivity(openConversationIntent);
             }
         });
@@ -99,4 +94,5 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
             return textViewLastMessageTimestamp;
         }
     }
+
 }
