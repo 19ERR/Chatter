@@ -16,7 +16,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.OnLifecycleEvent;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,6 +31,7 @@ import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.chatter.dialogs.AddContactDialog;
 import com.chatter.dialogs.InsertConversationTitleDialog;
+import com.chatter.viewModels.ContactsViewModel;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,7 +43,9 @@ import java.util.ArrayList;
 
 public class ContactListActivity extends AppCompatActivity implements  InsertConversationTitleDialog.finishTitleInsertionDialogListener{
     RecyclerView recyclerView;
-    ContactsAdapter adapter;
+    ContactsAdapter contactsAdapter;
+    ContactsViewModel contactsViewModel;
+    Activity context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,22 +57,26 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Contacts");
         }
-
-        Query query = FirebaseDatabase.getInstance().getReference("users").child(FirebaseAuth.getInstance().getUid()).child("contacts").limitToLast(100);
-
-        FirebaseRecyclerOptions<Contact> options =
-                new FirebaseRecyclerOptions.Builder<Contact>().setQuery(query, Contact.class).build();
-        ContactsAdapter adapter = new ContactsAdapter(options);
-        adapter.startListening();
-
-        recyclerView = findViewById(R.id.recycle_contact_list);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
         FloatingActionButton buttonStartConversation = findViewById(R.id.button_start_conversation);
         buttonStartConversation.setOnClickListener(v -> startNewConversation());
+
+        contactsAdapter = new ContactsAdapter();
+
+        recyclerView = findViewById(R.id.recycle_contact_list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setAdapter(contactsAdapter);
+
+        contactsViewModel = ViewModelProviders.of(this).get(ContactsViewModel.class);
+        contactsViewModel.getUserMutableLiveData().observe(this,contactsListUpdateObserver);
     }
+
+    Observer<ArrayList<Contact>> contactsListUpdateObserver = new Observer<ArrayList<Contact>>() {
+        @Override
+        public void onChanged(ArrayList<Contact> userArrayList) {
+            contactsAdapter.notifyDataSetChanged();
+        }
+    };
 
     public void startNewConversation(){
         String newConversationName = "";
@@ -99,7 +109,7 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         ArrayList<Contact> conversationContacts = new ArrayList<>();
         conversationContacts.add(new Contact(FirebaseAuth.getInstance().getUid(), User.getEmail()));
         for (Contact c : selectedContacts) {
-            Contact contact = User.getContacts().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
+            Contact contact = User.getContacts().getValue().stream().filter(co -> c.getEmail().equals(co.getEmail())).findFirst().orElse(null);
             conversationContacts.add(contact);
         }
 
@@ -173,7 +183,6 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
     @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()) {
             case R.id.menuAddContact:
                 AddContactDialog cdd = new AddContactDialog(this);

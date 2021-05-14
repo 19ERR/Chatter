@@ -26,7 +26,6 @@ import com.google.firebase.database.ValueEventListener;
 
 public class AddContactDialog extends Dialog {
     String newContactEmail;
-
     Context context;
 
     public AddContactDialog(@NonNull Context context) {
@@ -67,6 +66,7 @@ public class AddContactDialog extends Dialog {
                     DatabaseReference contactsRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid()).child("contacts").child(userSnapshot.getKey()).child("email");
 
                     contactsRef.setValue(newContact.getEmail());
+                    dismiss();
                 } else {
                     Toast.makeText(context, "Emailul introdus este gresit sau utilizatorul nu este inregistrat in aplicatie!", Toast.LENGTH_LONG).show();
                 }

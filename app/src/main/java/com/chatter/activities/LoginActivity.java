@@ -36,6 +36,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 public class LoginActivity extends AppCompatActivity implements RegisterDialog.finishRegisterDialogListener {
     private static final int RC_SIGN_IN = 9001;
 

@@ -1,5 +1,7 @@
 package com.chatter.classes;
 
+import androidx.lifecycle.MutableLiveData;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.Exclude;
 
@@ -12,7 +14,7 @@ import java.util.Optional;
 
 public class User {
     @Exclude
-    private static final ArrayList<Contact> contacts = new ArrayList<>();
+    private static final MutableLiveData<ArrayList<Contact>> contacts = new MutableLiveData<>(new ArrayList<>());
     @Exclude
     private static final ArrayList<Conversation> conversations = new ArrayList<>();
 
@@ -29,15 +31,17 @@ public class User {
         User.email = email;
     }
 
-    public static ArrayList<Contact> getContacts() {
+    public static MutableLiveData<ArrayList<Contact>> getContacts() {
         return contacts;
     }
 
-    public static void setContacts(Map<String, Contact> contacts) {
-        for (String key : contacts.keySet()) {
-            Objects.requireNonNull(contacts.get(key)).setKey(key);
-            User.contacts.add(contacts.get(key));
+    public static void setContacts(Map<String, Contact> contactsMap) {
+        ArrayList<Contact> contactsAux = new ArrayList<>();
+        for (String key : contactsMap.keySet()) {
+            Objects.requireNonNull(contactsMap.get(key)).setKey(key);
+            contactsAux.add(contactsMap.get(key));
         }
+        contacts.postValue(contactsAux);
     }
 
     public static ArrayList<Conversation> getConversations() {
@@ -54,7 +58,7 @@ public class User {
     public static Map<String, Object> getContactsHashMap() {
         Map<String, Object> contactHashMap = new HashMap<>();
         for (Contact c :
-                User.contacts) {
+                User.contacts.getValue()) {
             contactHashMap.put(c.getKey(), c);
         }
 
@@ -67,11 +71,17 @@ public class User {
     }
 
     public static void addContact(Contact newContact) {
-        User.contacts.add(newContact);
+        ArrayList<Contact> newContactList;
+        newContactList = contacts.getValue();
+        newContactList.add(newContact);
+        contacts.postValue(newContactList);
     }
 
     public static void removeContact(String contactKey) {
-        contacts.removeIf(c -> c.getKey().equals(contactKey));
+        ArrayList<Contact> newContactList;
+        newContactList = contacts.getValue();
+        newContactList.removeIf(c -> c.getKey().equals(contactKey));
+        contacts.postValue(newContactList);
     }
 
     public static void logOut(){
