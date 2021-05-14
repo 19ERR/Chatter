@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -31,15 +32,14 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 //TODO: BUFFER GLOBAL IN ACTIVITATE PENTRU A TRIMITE TEXT SI POZA IN ACELAS TIMP
-public class MessagesAdapter extends FirebaseRecyclerAdapter<Message, MessagesAdapter.ViewHolder> {
-    Context context;
-    RecyclerView recyclerView;
-    public MessagesAdapter(@NonNull FirebaseRecyclerOptions<Message> options, Context context, RecyclerView recyclerView) {
-        super(options);
-        this.context = context;
-        this.recyclerView = recyclerView;
+public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder>{
+
+    private final MutableLiveData<ArrayList<Message>> messages;
+    public MessagesAdapter(MutableLiveData<ArrayList<Message>> messages) {
+        this.messages = messages;
     }
 
     @NonNull
@@ -52,15 +52,15 @@ public class MessagesAdapter extends FirebaseRecyclerAdapter<Message, MessagesAd
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull ViewHolder viewHolder, int i, @NonNull Message message) {
-        viewHolder.getTextViewMessageSender().setText(message.getSenderEmail());
-        viewHolder.getTextViewMessageContent().setText(message.getTextContent());
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
+        viewHolder.getTextViewMessageSender().setText(messages.getValue().get(position).getSenderEmail());
+        viewHolder.getTextViewMessageContent().setText(messages.getValue().get(position).getTextContent());
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm");
-        viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(message.getTimestamp()));
+        viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.getValue().get(position).getTimestamp()));
         viewHolder.itemView.setOnClickListener(v -> {
         });
-        if (User.getEmail().equals(message.getSenderEmail())) {
+        if (User.getEmail().equals(messages.getValue().get(position).getSenderEmail())) {
             //la dreapta
            makeOwn(viewHolder);
         } else {
@@ -68,11 +68,9 @@ public class MessagesAdapter extends FirebaseRecyclerAdapter<Message, MessagesAd
             makeOpponent(viewHolder);
         }
 
-        recyclerView.smoothScrollToPosition(getItemCount());
-
-        if(message.getMediaKey()!=null) {
+        if(messages.getValue().get(position).getMediaKey()!=null) {
             FirebaseStorage storage = FirebaseStorage.getInstance();
-            StorageReference imageRef = storage.getReference().child(message.getMediaKey());
+            StorageReference imageRef = storage.getReference().child(messages.getValue().get(position).getMediaKey());
 
             File localFile = null;
             try {
@@ -96,6 +94,11 @@ public class MessagesAdapter extends FirebaseRecyclerAdapter<Message, MessagesAd
             });
         }
 
+    }
+
+    @Override
+    public int getItemCount() {
+        return messages.getValue().size();
     }
 
     private void makeOpponent(ViewHolder holder) {

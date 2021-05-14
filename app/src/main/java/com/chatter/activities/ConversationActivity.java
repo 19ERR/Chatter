@@ -7,19 +7,21 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.EditText;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
 import com.chatter.adapters.MessagesAdapter;
+import com.chatter.classes.Conversation;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.chatter.viewModels.MessagesViewModel;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -28,23 +30,33 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 
 //TODO: incarcarea a mai multe elemente la scroll in sus
 public class ConversationActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     MessagesAdapter messagesAdapter;
     String conversationKey;
+    MessagesViewModel messagesViewModel;
+    Observer<ArrayList<Message>> messagesListUpdateObserver = new Observer<ArrayList<Message>>() {
+        @Override
+        public void onChanged(ArrayList<Message> messagesArrayList) {
+            messagesAdapter.notifyDataSetChanged();
+        }
+    };
+    Conversation conversation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation);
         conversationKey = getIntent().getStringExtra("conversation_key");
+        conversation = User.getConversation(conversationKey);
 
         Toolbar toolbar = findViewById(R.id.toolbar_conversation_list);
         setSupportActionBar(toolbar);
@@ -75,22 +87,18 @@ public class ConversationActivity extends AppCompatActivity {
         });
 
         RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
-        Query query = FirebaseDatabase.getInstance()
-                .getReference()
-                .child("messages").child(conversationKey)
-                .limitToLast(50);
-        FirebaseRecyclerOptions<Message> options =
-                new FirebaseRecyclerOptions.Builder<Message>()
-                        .setQuery(query, Message.class)
-                        .build();
-        MessagesAdapter adapter = new MessagesAdapter(options,this,recyclerView);
-        adapter.startListening();
+
+        messagesAdapter = new MessagesAdapter(conversation.getMessages());
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-        recyclerView.smoothScrollToPosition(adapter.getItemCount());
-        ((LinearLayoutManager)recyclerView.getLayoutManager()).setStackFromEnd(true);
+        recyclerView.setAdapter(messagesAdapter);
+        recyclerView.smoothScrollToPosition(messagesAdapter.getItemCount());
+        ((LinearLayoutManager) recyclerView.getLayoutManager()).setStackFromEnd(true);
+        //adauga observer pentru lista de conversatii
+        messagesViewModel = ViewModelProviders.of(this).get(MessagesViewModel.class);
+        messagesViewModel.setMessagesLiveData(conversation.getMessages());
+        messagesViewModel.getMessagesLiveData().observe(this, messagesListUpdateObserver);
     }
 
     @Override
@@ -98,7 +106,7 @@ public class ConversationActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    private  void uploadPhoto(Bitmap imageBitmap){
+    private void uploadPhoto(Bitmap imageBitmap) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference();
 

@@ -116,7 +116,7 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         Conversation newConversation;
-        Message newMessage = new Message("Conversatie creata", "", User.getEmail());
+        Message newMessage = new Message("Conversatie creata", null, User.getEmail());
         newConversation = new Conversation(newConversationName, conversationContacts, newMessage);
 
         DatabaseReference convRef = database.getReference("conversations").push();

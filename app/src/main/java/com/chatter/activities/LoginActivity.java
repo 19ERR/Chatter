@@ -218,6 +218,37 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                         assert c != null;
                         c.setKey(conversationSnapshot.getKey());
                         User.addConversation(c);
+
+                        //de adaugat listener pentru mesaje
+                        DatabaseReference messagesRef = database.getReference().child("messages").child(conversationSnapshot.getKey()).getRef();
+                        messagesRef.addChildEventListener(new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                Message newMessage = snapshot.getValue(Message.class);
+                                newMessage.setKey(snapshot.getKey());
+                                c.addMessage(newMessage);
+                            }
+
+                            @Override
+                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+
+                            @Override
+                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                            }
+
+                            @Override
+                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
                     }
 
                     @Override
