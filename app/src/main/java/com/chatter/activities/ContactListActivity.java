@@ -67,13 +67,14 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(contactsAdapter);
 
+        //adauga observer pentru lista de conversatii
         contactsViewModel = ViewModelProviders.of(this).get(ContactsViewModel.class);
-        contactsViewModel.getUserMutableLiveData().observe(this,contactsListUpdateObserver);
+        contactsViewModel.getContactsLiveData().observe(this,contactsListUpdateObserver);
     }
 
     Observer<ArrayList<Contact>> contactsListUpdateObserver = new Observer<ArrayList<Contact>>() {
         @Override
-        public void onChanged(ArrayList<Contact> userArrayList) {
+        public void onChanged(ArrayList<Contact> contactsArrayList) {
             contactsAdapter.notifyDataSetChanged();
         }
     };
@@ -83,7 +84,7 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         ArrayList<Contact> selectedContacts = ContactsAdapter.selectedContacts;
 
         if (selectedContacts.size() == 1) {
-            Conversation newConversation = User.getConversations().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
+            Conversation newConversation = User.getConversations().getValue().stream().filter(c -> c.getParticipantsList().contains(selectedContacts.get(0))).findFirst().orElse(null);
 
             //daca nu exista conversatie existenta
             if (newConversation == null) {

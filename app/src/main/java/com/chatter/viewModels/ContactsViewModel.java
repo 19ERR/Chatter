@@ -9,7 +9,6 @@ import com.chatter.classes.User;
 import java.util.ArrayList;
 
 public class ContactsViewModel extends ViewModel {
-
     MutableLiveData<ArrayList<Contact>> contactsLiveData;
 
     public ContactsViewModel() {
@@ -17,7 +16,7 @@ public class ContactsViewModel extends ViewModel {
         contactsLiveData = User.getContacts();
     }
 
-    public MutableLiveData<ArrayList<Contact>> getUserMutableLiveData() {
+    public MutableLiveData<ArrayList<Contact>> getContactsLiveData() {
         return contactsLiveData;
     }
 }

@@ -39,7 +39,7 @@ public class ConversationsShareAdapter extends RecyclerView.Adapter<Conversation
     private final String sharedLink;
 
     public ConversationsShareAdapter(Bitmap sharedImage, String sharedLink) {
-        this.conversations = User.getConversations();
+        this.conversations = User.getConversations().getValue();
         this.sharedImage = sharedImage;
         this.sharedLink = sharedLink;
     }
@@ -85,7 +85,7 @@ public class ConversationsShareAdapter extends RecyclerView.Adapter<Conversation
 
     @Override
     public int getItemCount() {
-        return User.getConversations().size();
+        return User.getConversations().getValue().size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

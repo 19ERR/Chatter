@@ -37,6 +37,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity implements RegisterDialog.finishRegisterDialogListener {
     private static final int RC_SIGN_IN = 9001;
@@ -195,6 +196,57 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+
+        //listener pentru conversatii
+        DatabaseReference userConvRef = database.getReference().child("users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).child("user_conversations").getRef();
+        userConvRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
+                //pentru fiecare conversatie care apare se preia cheia
+                String value = userConversationSnapshot.getValue(String.class);
+                //referinta catre conversatie din root-ul "conversations"
+                assert value != null;
+                DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
+
+                //pentru fiecare conversatie aparuta, preia datele
+                conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
+                        Conversation c = conversationSnapshot.getValue(Conversation.class);
+                        assert c != null;
+                        c.setKey(conversationSnapshot.getKey());
+                        User.addConversation(c);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot userConversationSnapshot) {
+                //pentru fiecare conversatie care dispare se preia cheia pentru a putea sterge
+                String key = userConversationSnapshot.getValue(String.class);
+                User.removeConversation(key);
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
     }

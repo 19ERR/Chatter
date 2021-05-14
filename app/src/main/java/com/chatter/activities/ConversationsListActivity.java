@@ -12,13 +12,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
 import com.chatter.adapters.ConversationsAdapter;
+import com.chatter.classes.Contact;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
+import com.chatter.viewModels.ContactsViewModel;
+import com.chatter.viewModels.ConversationsViewModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -30,11 +35,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class ConversationsListActivity extends AppCompatActivity {
     private static final int RC_ADD_CONVERSATION = 9002;
     ConversationsAdapter conversationsAdapter;
+    ConversationsViewModel conversationsViewModel;
     RecyclerView recyclerView;
 
     @Override
@@ -61,59 +68,17 @@ public class ConversationsListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(conversationsAdapter);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference conversationsRef = database.getReference();
-        //listener pentru covnersatii
-        DatabaseReference userConvRef = database.getReference().child("users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).child("user_conversations").getRef();
-        userConvRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
-                //pentru fiecare conversatie care apare se preia cheia
-                String value = userConversationSnapshot.getValue(String.class);
-                //referinta catre conversatie din root-ul "conversations"
-                assert value != null;
-                DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
-
-                //pentru fiecare conversatie aparuta, preia datele
-                conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
-                        Conversation c = conversationSnapshot.getValue(Conversation.class);
-                        assert c != null;
-                        c.setKey(conversationSnapshot.getKey());
-                        User.getConversations().add(c);
-                        conversationsAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
+        //adauga observer pentru lista de conversatii
+        conversationsViewModel = ViewModelProviders.of(this).get(ConversationsViewModel.class);
+        conversationsViewModel.getConversationsLiveData().observe(this,conversationsListUpdateObserver);
     }
 
+    Observer<ArrayList<Conversation>> conversationsListUpdateObserver = new Observer<ArrayList<Conversation>>() {
+        @Override
+        public void onChanged(ArrayList<Conversation> conversationsArrayList) {
+            conversationsAdapter.notifyDataSetChanged();
+        }
+    };
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

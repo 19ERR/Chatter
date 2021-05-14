@@ -19,9 +19,8 @@ import java.util.ArrayList;
 
 
 public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdapter.ViewHolder> {
-    private final ArrayList<Conversation> conversations;
+
     public ConversationsAdapter() {
-        this.conversations = User.getConversations();
     }
     @NonNull
     @Override
@@ -34,7 +33,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
-        Conversation conversation = this.conversations.get(position);
+        Conversation conversation = User.getConversations().getValue().get(position);
         if (conversation.getParticipantsList().size() == 2) {
             for (Contact contact : conversation.getParticipantsList()) {
                 if (!contact.getEmail().equals(User.getEmail())) {
@@ -61,7 +60,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
 
     @Override
     public int getItemCount() {
-        return User.getConversations().size();
+        return User.getConversations().getValue().size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
