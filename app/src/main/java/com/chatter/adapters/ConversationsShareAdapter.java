@@ -123,13 +123,13 @@ public class ConversationsShareAdapter extends RecyclerView.Adapter<Conversation
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Task<Uri> urlTask = uploadTask.continueWithTask((Continuation<UploadTask.TaskSnapshot, Task<Uri>>) task -> {
+                Task<Uri> urlTask = uploadTask.continueWithTask(task -> {
                     if (!task.isSuccessful()) {
                         throw task.getException();
                     }
                     //genereaza uri
                     return imageRef.getDownloadUrl();
-                }).addOnCompleteListener((OnCompleteListener<Uri>) task -> {
+                }).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Uri downloadUri = task.getResult();
                         Message newMessage = new Message(null, imageRef.getPath(), User.getEmail());

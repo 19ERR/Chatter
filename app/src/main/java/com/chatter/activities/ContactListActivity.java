@@ -40,12 +40,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ContactListActivity extends AppCompatActivity implements  InsertConversationTitleDialog.finishTitleInsertionDialogListener{
     RecyclerView recyclerView;
     ContactsAdapter contactsAdapter;
     ContactsViewModel contactsViewModel;
     Activity context = this;
+    ArrayList<Contact> adapterContacts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +63,8 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         FloatingActionButton buttonStartConversation = findViewById(R.id.button_start_conversation);
         buttonStartConversation.setOnClickListener(v -> startNewConversation());
 
-        contactsAdapter = new ContactsAdapter();
+        adapterContacts = User.getContacts().getValue();
+        contactsAdapter = new ContactsAdapter(adapterContacts);
 
         recyclerView = findViewById(R.id.recycle_contact_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
@@ -167,13 +171,17 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                //your logic
+                adapterContacts = (ArrayList<Contact>)User.getContacts().getValue().stream().filter(c -> c.getEmail().contains(query)).collect(Collectors.toList());
+                contactsAdapter.setContacts(adapterContacts);
+                contactsAdapter.notifyDataSetChanged();
                 return true;
             }
 
             @Override
-            public boolean onQueryTextChange(String newText) {
-                //your logic
+            public boolean onQueryTextChange(String query) {
+                adapterContacts = (ArrayList<Contact>)User.getContacts().getValue().stream().filter(c -> c.getEmail().contains(query)).collect(Collectors.toList());
+                contactsAdapter.setContacts(adapterContacts);
+                contactsAdapter.notifyDataSetChanged();
                 return true;
             }
         });

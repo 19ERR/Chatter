@@ -20,8 +20,13 @@ import java.util.ArrayList;
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactHolder> {
 
     public static ArrayList<Contact> selectedContacts = new ArrayList<>();
+    public ArrayList<Contact> contacts = new ArrayList<>();
+    public ContactsAdapter(ArrayList<Contact> contacts) {
+        this.contacts = contacts;
+    }
 
-    public ContactsAdapter() {
+    public void setContacts(ArrayList<Contact> contacts) {
+        this.contacts = contacts;
     }
 
     @NonNull
@@ -35,20 +40,20 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
 
     @Override
     public int getItemCount() {
-        return User.getContacts().getValue().size();
+        return contacts.size();
     }
 
     @Override
     public void onBindViewHolder(ContactHolder viewHolder, int position) {
-        viewHolder.getTextViewContactEmail().setText(User.getContacts().getValue().get(position).getEmail());
+        viewHolder.getTextViewContactEmail().setText(contacts.get(position).getEmail());
         viewHolder.getTextViewContactEmail().setOnClickListener(v -> {
-            User.getContacts().getValue().get(position).select();
-            if (User.getContacts().getValue().get(position).isSelected()) {
-                selectedContacts.add(User.getContacts().getValue().get(position));
+            contacts.get(position).select();
+            if (contacts.get(position).isSelected()) {
+                selectedContacts.add(contacts.get(position));
                 Toast.makeText(v.getContext(), "Selectat", Toast.LENGTH_SHORT).show();
                 v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.black));
             } else {
-                selectedContacts.remove(User.getContacts().getValue().get(position));
+                selectedContacts.remove(contacts.get(position));
                 Toast.makeText(v.getContext(), "Deselectat", Toast.LENGTH_SHORT).show();
                 v.setBackgroundColor(ContextCompat.getColor(v.getContext(), R.color.white));
             }

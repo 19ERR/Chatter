@@ -36,27 +36,28 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-
+//TODO: incarcarea doar a unei parti din elemente
 //TODO: incarcarea a mai multe elemente la scroll in sus
 public class ConversationActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     MessagesAdapter messagesAdapter;
-    String conversationKey;
     MessagesViewModel messagesViewModel;
+    RecyclerView recyclerView;
+
+    Conversation conversation;
+
     Observer<ArrayList<Message>> messagesListUpdateObserver = new Observer<ArrayList<Message>>() {
         @Override
         public void onChanged(ArrayList<Message> messagesArrayList) {
             messagesAdapter.notifyDataSetChanged();
         }
     };
-    Conversation conversation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation);
-        conversationKey = getIntent().getStringExtra("conversation_key");
-        conversation = User.getConversation(conversationKey);
+        conversation = User.getConversation(getIntent().getStringExtra("conversation_key"));
 
         Toolbar toolbar = findViewById(R.id.toolbar_conversation_list);
         setSupportActionBar(toolbar);
@@ -71,7 +72,7 @@ public class ConversationActivity extends AppCompatActivity {
 
             Message newMessage = new Message(messageContent, null, User.getEmail());
             FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference convRef = database.getReference().child("messages").child(conversationKey).push();
+            DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
             convRef.setValue(newMessage);
             inputEditTextMessage.setText("");
         });
@@ -86,9 +87,9 @@ public class ConversationActivity extends AppCompatActivity {
             }
         });
 
-        RecyclerView recyclerView = findViewById(R.id.recycle_message_list);
+        recyclerView = findViewById(R.id.recycle_message_list);
 
-        messagesAdapter = new MessagesAdapter(conversation.getMessages());
+        messagesAdapter = new MessagesAdapter(conversation.getMessages().getValue());
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -112,7 +113,7 @@ public class ConversationActivity extends AppCompatActivity {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         //referinta la unde se va salva mesajul
-        DatabaseReference newMessageRef = database.getReference().child("messages").child(conversationKey).push();
+        DatabaseReference newMessageRef = database.getReference().child("messages").child(conversation.getKey()).push();
         //referinta la unde se va salva poza care va avea cheia mesajului ca denumire
         StorageReference imageRef = storageRef.child("images").child(newMessageRef.getKey());
 
@@ -129,13 +130,13 @@ public class ConversationActivity extends AppCompatActivity {
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Task<Uri> urlTask = uploadTask.continueWithTask((Continuation<UploadTask.TaskSnapshot, Task<Uri>>) task -> {
+                Task<Uri> urlTask = uploadTask.continueWithTask(task -> {
                     if (!task.isSuccessful()) {
                         throw task.getException();
                     }
                     //genereaza uri
                     return imageRef.getDownloadUrl();
-                }).addOnCompleteListener((OnCompleteListener<Uri>) task -> {
+                }).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Uri downloadUri = task.getResult();
                         Message newMessage = new Message("", imageRef.getPath(), User.getEmail());

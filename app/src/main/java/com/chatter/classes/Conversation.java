@@ -16,7 +16,7 @@ public class Conversation {
     private Message lastMessage;
     private ArrayList<Contact> participants = new ArrayList<>();
     @Exclude
-    private MutableLiveData<ArrayList<Message>> messages = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<ArrayList<Message>> messages = new MutableLiveData<>(new ArrayList<>());
 
     public Conversation(String name, ArrayList<Contact> participants, Message lastMessage) {
         this.name = name;

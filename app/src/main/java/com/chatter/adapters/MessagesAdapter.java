@@ -37,8 +37,8 @@ import java.util.ArrayList;
 //TODO: BUFFER GLOBAL IN ACTIVITATE PENTRU A TRIMITE TEXT SI POZA IN ACELAS TIMP
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder>{
 
-    private final MutableLiveData<ArrayList<Message>> messages;
-    public MessagesAdapter(MutableLiveData<ArrayList<Message>> messages) {
+    private final ArrayList<Message> messages;
+    public MessagesAdapter(ArrayList<Message> messages) {
         this.messages = messages;
     }
 
@@ -53,14 +53,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
-        viewHolder.getTextViewMessageSender().setText(messages.getValue().get(position).getSenderEmail());
-        viewHolder.getTextViewMessageContent().setText(messages.getValue().get(position).getTextContent());
+        viewHolder.getTextViewMessageSender().setText(messages.get(position).getSenderEmail());
+        viewHolder.getTextViewMessageContent().setText(messages.get(position).getTextContent());
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm");
-        viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.getValue().get(position).getTimestamp()));
+        viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.get(position).getTimestamp()));
         viewHolder.itemView.setOnClickListener(v -> {
         });
-        if (User.getEmail().equals(messages.getValue().get(position).getSenderEmail())) {
+        if (User.getEmail().equals(messages.get(position).getSenderEmail())) {
             //la dreapta
            makeOwn(viewHolder);
         } else {
@@ -68,9 +68,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             makeOpponent(viewHolder);
         }
 
-        if(messages.getValue().get(position).getMediaKey()!=null) {
+        if(messages.get(position).getMediaKey()!=null) {
             FirebaseStorage storage = FirebaseStorage.getInstance();
-            StorageReference imageRef = storage.getReference().child(messages.getValue().get(position).getMediaKey());
+            StorageReference imageRef = storage.getReference().child(messages.get(position).getMediaKey());
 
             File localFile = null;
             try {
@@ -98,7 +98,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return messages.getValue().size();
+        return messages.size();
     }
 
     private void makeOpponent(ViewHolder holder) {
@@ -122,7 +122,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         private final TextView textViewMessageSender;
         private final TextView textViewMessageTimestamp;
         private final CardView cardView;
-        private RelativeLayout relativeLayout;
+        private final RelativeLayout relativeLayout;
 
         public ViewHolder(View view) {
             super(view);
