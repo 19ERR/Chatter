@@ -15,6 +15,8 @@ import androidx.fragment.app.FragmentManager;
 import com.chatter.R;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.User;
+import com.chatter.fragments.ConversationMediaFragment;
+import com.chatter.fragments.ConversationParticipantsFragment;
 import com.chatter.fragments.MessagesFragment;
 import com.google.android.material.navigation.NavigationView;
 
@@ -31,28 +33,30 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation);
         this.conversation = User.getConversation(getIntent().getStringExtra("conversation_key"));
+        this.drawerLayout = findViewById(R.id.drawer_layout);
+        this.messagesFragment = new MessagesFragment(conversation.getKey());
+        this.conversationParticipantsFragment = new ConversationParticipantsFragment(conversation.getKey());
+        //this.conversationMediaFragment = new ConversationMediaFragment(conversation.getKey());
 
         Toolbar toolbar = findViewById(R.id.toolbar_conversation);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Conversatii");
         }
-        this.drawerLayout = findViewById(R.id.drawer_layout);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         ActionBarDrawerToggle actionBarDrawerToggle =
                 new ActionBarDrawerToggle(this,drawerLayout, toolbar,
                         R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
-        //creeare fragmente
-        this.messagesFragment = new MessagesFragment(conversation.getKey());
         if (savedInstanceState == null) {
             showMessages();
         }
     }
-
 
     @Override
     protected void onResume() {
@@ -64,19 +68,25 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
         fragmentManager.beginTransaction()
                 .replace(R.id.conversation_fragment, this.messagesFragment)
                 .setReorderingAllowed(true)
-                .addToBackStack("name") // name can be null
+                .addToBackStack("messages")
                 .commit();
-
     }
 
     private void showParticipants(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.conversation_fragment, this.conversationParticipantsFragment)
+                .setReorderingAllowed(true)
+                .addToBackStack("participants")
+                .commit();
     }
+
     private void showMedia(){
     }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-
             case R.id.nav_item_messages:
                 showMessages();
                 break;
@@ -87,6 +97,7 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
                 showMedia();
                 break;
         }
+        drawerLayout.close();
         return true;
     }
 

@@ -9,11 +9,17 @@ import com.chatter.classes.User;
 import java.util.ArrayList;
 
 public class ContactsViewModel extends ViewModel {
-    MutableLiveData<ArrayList<Contact>> contactsLiveData;
+
+    MutableLiveData<ArrayList<Contact>> contactsLiveData = new MutableLiveData<>();
+
+    public ContactsViewModel(ArrayList<Contact> contacts) {
+        contactsLiveData.postValue(contacts);
+    }
 
     public ContactsViewModel() {
-        contactsLiveData = new MutableLiveData<>();
-        contactsLiveData = User.getContacts();
+    }
+    public void setContactsLiveData(MutableLiveData<ArrayList<Contact>> contactsLiveData) {
+        this.contactsLiveData = contactsLiveData;
     }
 
     public MutableLiveData<ArrayList<Contact>> getContactsLiveData() {
