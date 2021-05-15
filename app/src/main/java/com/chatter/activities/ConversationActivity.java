@@ -36,7 +36,7 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
         this.drawerLayout = findViewById(R.id.drawer_layout);
         this.messagesFragment = new MessagesFragment(conversation.getKey());
         this.conversationParticipantsFragment = new ConversationParticipantsFragment(conversation.getKey());
-        //this.conversationMediaFragment = new ConversationMediaFragment(conversation.getKey());
+        this.conversationMediaFragment = new ConversationMediaFragment(conversation.getKey());
 
         Toolbar toolbar = findViewById(R.id.toolbar_conversation);
         setSupportActionBar(toolbar);
@@ -50,7 +50,7 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
                 new ActionBarDrawerToggle(this,drawerLayout, toolbar,
                         R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         if (savedInstanceState == null) {
@@ -82,6 +82,12 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
     }
 
     private void showMedia(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.conversation_fragment, this.conversationMediaFragment)
+                .setReorderingAllowed(true)
+                .addToBackStack("participants")
+                .commit();
     }
 
     @Override

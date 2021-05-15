@@ -10,10 +10,11 @@ import java.util.Date;
 public class Message {
     @Exclude
     private String key;
-    private String textContent ="";
+    private String textContent;
     private String senderEmail;
     private Date timestamp;
     private String mediaKey;
+    private Boolean containsMedia;
 
     public String getMediaKey() {
         return mediaKey;
@@ -24,11 +25,19 @@ public class Message {
     }
 
 
+    public Message(String textContent, String mediaKey, String senderEmail, Boolean containsMedia) {
+        this.textContent = textContent;
+        this.mediaKey = mediaKey;
+        this.senderEmail = senderEmail;
+        this.timestamp = new Date();
+        this.containsMedia = containsMedia;
+    }
     public Message(String textContent, String mediaKey, String senderEmail) {
         this.textContent = textContent;
         this.mediaKey = mediaKey;
         this.senderEmail = senderEmail;
         this.timestamp = new Date();
+        this.containsMedia = false;
     }
 
     private Message() {
@@ -65,6 +74,14 @@ public class Message {
 
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Boolean getContainsMedia() {
+        return containsMedia;
+    }
+
+    public void setContainsMedia(Boolean containsMedia) {
+        this.containsMedia = containsMedia;
     }
 
 }

@@ -57,13 +57,10 @@ public class ConversationListShareActivity extends Activity{
         if (imageUri != null) {
             try
             {
-                ImageView imageView = findViewById(R.id.imageView2);
                 this.imageToShare = MediaStore.Images.Media.getBitmap(this.getContentResolver() , Uri.parse(imageUri.toString()));
-                imageView.setImageBitmap(this.imageToShare);
             }
             catch (Exception e)
             {
-                //handle exception
             }
         }
     }

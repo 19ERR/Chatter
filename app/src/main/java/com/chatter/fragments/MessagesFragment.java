@@ -37,6 +37,8 @@ import com.google.firebase.storage.UploadTask;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
+import static android.app.Activity.RESULT_OK;
+
 
 //TODO: incarcarea doar a unei parti din elemente
 //TODO: incarcarea a mai multe elemente la scroll in sus
@@ -157,7 +159,7 @@ public class MessagesFragment extends Fragment {
                 }).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Uri downloadUri = task.getResult();
-                        Message newMessage = new Message("", imageRef.getPath(), User.getEmail());
+                        Message newMessage = new Message(null, imageRef.getPath(), User.getEmail(), true);
                         newMessageRef.setValue(newMessage);
                     } else {
                         // Handle failures
@@ -172,11 +174,10 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == 1) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             uploadPhoto(imageBitmap);
-
         }
     }
 
