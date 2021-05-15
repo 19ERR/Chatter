@@ -1,164 +1,101 @@
 package com.chatter.activities;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.widget.EditText;
+import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.chatter.R;
-import com.chatter.adapters.MessagesAdapter;
 import com.chatter.classes.Conversation;
-import com.chatter.classes.Message;
 import com.chatter.classes.User;
-import com.chatter.viewModels.MessagesViewModel;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
+import com.chatter.fragments.MessagesFragment;
+import com.google.android.material.navigation.NavigationView;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-//TODO: incarcarea doar a unei parti din elemente
-//TODO: incarcarea a mai multe elemente la scroll in sus
-public class ConversationActivity extends AppCompatActivity {
-    static final int REQUEST_IMAGE_CAPTURE = 1;
-    MessagesAdapter messagesAdapter;
-    MessagesViewModel messagesViewModel;
-    RecyclerView recyclerView;
-
+public class ConversationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     Conversation conversation;
+    DrawerLayout drawerLayout;
 
-    Observer<ArrayList<Message>> messagesListUpdateObserver = new Observer<ArrayList<Message>>() {
-        @Override
-        public void onChanged(ArrayList<Message> messagesArrayList) {
-            messagesAdapter.notifyDataSetChanged();
-        }
-    };
+    Fragment messagesFragment;
+    Fragment conversationParticipantsFragment;
+    Fragment conversationMediaFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation);
-        conversation = User.getConversation(getIntent().getStringExtra("conversation_key"));
+        this.conversation = User.getConversation(getIntent().getStringExtra("conversation_key"));
 
-        Toolbar toolbar = findViewById(R.id.toolbar_conversation_list);
+        Toolbar toolbar = findViewById(R.id.toolbar_conversation);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Conversatii");
         }
+        this.drawerLayout = findViewById(R.id.drawer_layout);
 
-        FloatingActionButton buttonSendMessage = findViewById(R.id.buttonSendMessage);
-        buttonSendMessage.setOnClickListener(v -> {
-            EditText inputEditTextMessage = findViewById(R.id.editTextMessage);
-            String messageContent = inputEditTextMessage.getText().toString();
+        ActionBarDrawerToggle actionBarDrawerToggle =
+                new ActionBarDrawerToggle(this,drawerLayout, toolbar,
+                        R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-            Message newMessage = new Message(messageContent, null, User.getEmail());
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
-            convRef.setValue(newMessage);
-            inputEditTextMessage.setText("");
-        });
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        FloatingActionButton buttonTakePhoto = findViewById(R.id.buttonTakePhoto);
-        buttonTakePhoto.setOnClickListener(v -> {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            try {
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            } catch (ActivityNotFoundException e) {
-                // display error state to the user
-            }
-        });
-
-        recyclerView = findViewById(R.id.recycle_message_list);
-
-        messagesAdapter = new MessagesAdapter(conversation.getMessages().getValue());
-
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(messagesAdapter);
-        recyclerView.smoothScrollToPosition(messagesAdapter.getItemCount());
-        ((LinearLayoutManager) recyclerView.getLayoutManager()).setStackFromEnd(true);
-        //adauga observer pentru lista de conversatii
-        messagesViewModel = ViewModelProviders.of(this).get(MessagesViewModel.class);
-        messagesViewModel.setMessagesLiveData(conversation.getMessages());
-        messagesViewModel.getMessagesLiveData().observe(this, messagesListUpdateObserver);
+        //creeare fragmente
+        this.messagesFragment = new MessagesFragment(conversation.getKey());
+        if (savedInstanceState == null) {
+            showMessages();
+        }
     }
+
 
     @Override
     protected void onResume() {
         super.onResume();
     }
 
-    private void uploadPhoto(Bitmap imageBitmap) {
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference();
+    private void showMessages(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.conversation_fragment, this.messagesFragment)
+                .setReorderingAllowed(true)
+                .addToBackStack("name") // name can be null
+                .commit();
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        //referinta la unde se va salva mesajul
-        DatabaseReference newMessageRef = database.getReference().child("messages").child(conversation.getKey()).push();
-        //referinta la unde se va salva poza care va avea cheia mesajului ca denumire
-        StorageReference imageRef = storageRef.child("images").child(newMessageRef.getKey());
+    }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] bytes = baos.toByteArray();
+    private void showParticipants(){
+    }
+    private void showMedia(){
+    }
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
 
-        UploadTask uploadTask = imageRef.putBytes(bytes);
-        uploadTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Handle unsuccessful uploads
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Task<Uri> urlTask = uploadTask.continueWithTask(task -> {
-                    if (!task.isSuccessful()) {
-                        throw task.getException();
-                    }
-                    //genereaza uri
-                    return imageRef.getDownloadUrl();
-                }).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Uri downloadUri = task.getResult();
-                        Message newMessage = new Message("", imageRef.getPath(), User.getEmail());
-                        newMessageRef.setValue(newMessage);
-                    } else {
-                        // Handle failures
-                        // ...
-                    }
-                });
-
-            }
-        });
+            case R.id.nav_item_messages:
+                showMessages();
+                break;
+            case R.id.nav_item_participants:
+                showParticipants();
+                break;
+            case R.id.nav_item_media:
+                showMedia();
+                break;
+        }
+        return true;
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            uploadPhoto(imageBitmap);
-
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
     }
 }

@@ -169,6 +169,7 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) searchItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
             @Override
             public boolean onQueryTextSubmit(String query) {
                 adapterContacts = (ArrayList<Contact>)User.getContacts().getValue().stream().filter(c -> c.getEmail().contains(query)).collect(Collectors.toList());
