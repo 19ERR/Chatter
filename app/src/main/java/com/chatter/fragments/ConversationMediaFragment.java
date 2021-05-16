@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -114,7 +115,7 @@ public class ConversationMediaFragment extends Fragment {
         mediaLinksAdapter = new MediaAdapter(mediaLinks);
 
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        recyclerView.setLayoutManager(new GridLayoutManager(this.getContext(),5));
         recyclerView.setAdapter(mediaLinksAdapter);
 
         //adauga observer pentru lista de conversatii
