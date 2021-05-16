@@ -60,7 +60,9 @@ public class MessagesFragment extends Fragment {
     Observer<ArrayList<Message>> messagesListUpdateObserver = new Observer<ArrayList<Message>>() {
         @Override
         public void onChanged(ArrayList<Message> messagesArrayList) {
-            messagesAdapter.notifyDataSetChanged();
+            messagesAdapter.notifyItemInserted(conversation.getMessages().getValue().size() -1);
+            recyclerView.smoothScrollToPosition(conversation.getMessages().getValue().size() -1);
+           // messagesAdapter.notifyDataSetChanged();
         }
     };
 
