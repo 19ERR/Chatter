@@ -35,12 +35,12 @@ import java.util.ArrayList;
 
 public class ConversationsShareAdapter extends RecyclerView.Adapter<ConversationsShareAdapter.ViewHolder> {
     private final ArrayList<Conversation> conversations;
-    private final Bitmap sharedImage;
+    private final ArrayList<Bitmap> sharedImages;
     private final String sharedLink;
 
-    public ConversationsShareAdapter(Bitmap sharedImage, String sharedLink) {
+    public ConversationsShareAdapter(ArrayList<Bitmap> sharedImages, String sharedLink) {
         this.conversations = User.getConversations().getValue();
-        this.sharedImage = sharedImage;
+        this.sharedImages = sharedImages;
         this.sharedLink = sharedLink;
     }
 
@@ -77,7 +77,10 @@ public class ConversationsShareAdapter extends RecyclerView.Adapter<Conversation
                 DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
                 convRef.setValue(newMessage);
             } else {
-                uploadPhoto(this.sharedImage, conversation.getKey());
+                for (Bitmap image:
+                     sharedImages) {
+                    uploadPhoto(image, conversation.getKey());
+                }
             }
             Toast.makeText(v.getContext(), "Click", Toast.LENGTH_SHORT).show();
         });

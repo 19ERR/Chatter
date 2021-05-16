@@ -41,7 +41,7 @@ public class ConversationListShareActivity extends AppCompatActivity {
     ConversationsShareAdapter conversationsAdapter;
     ConversationsViewModel conversationsViewModel;
     RecyclerView recyclerView;
-    Bitmap imageToShare;
+    ArrayList<Bitmap> imagesToShare = new ArrayList<>();
     String linkToShare;
 
     @Override
@@ -50,6 +50,8 @@ public class ConversationListShareActivity extends AppCompatActivity {
         setContentView(R.layout.activity_conversation_list_share);
 
         Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        
         String action = intent.getAction();
         String type = intent.getType();
 
@@ -59,8 +61,12 @@ public class ConversationListShareActivity extends AppCompatActivity {
             } else if (type.startsWith("image/")) {
                 handleSendImage(intent); // Handle single image being sent
             }
+        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
+            if (type.startsWith("image/")) {
+                handleSendMultipleImages(intent); // Handle multiple images being sent
+            }
         }
-        conversationsAdapter = new ConversationsShareAdapter(imageToShare, linkToShare);
+        conversationsAdapter = new ConversationsShareAdapter(imagesToShare, linkToShare);
         recyclerView = findViewById(R.id.recycle_conversation_list_share);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -89,7 +95,7 @@ public class ConversationListShareActivity extends AppCompatActivity {
         if (imageUri != null) {
             try
             {
-                this.imageToShare = MediaStore.Images.Media.getBitmap(this.getContentResolver() , Uri.parse(imageUri.toString()));
+                this.imagesToShare.add(MediaStore.Images.Media.getBitmap(this.getContentResolver() , Uri.parse(imageUri.toString())));
             }
             catch (Exception e)
             {
@@ -97,4 +103,18 @@ public class ConversationListShareActivity extends AppCompatActivity {
         }
     }
 
+    void handleSendMultipleImages(Intent intent) {
+        ArrayList<Uri> imageUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+        if (imageUris != null) {
+            for (Uri imageUri:
+                 imageUris) {
+                try {
+                    this.imagesToShare.add(MediaStore.Images.Media.getBitmap(this.getContentResolver() , Uri.parse(imageUri.toString())));
+                }
+                catch (Exception e)
+                {
+                }
+            }
+        }
+    }
 }

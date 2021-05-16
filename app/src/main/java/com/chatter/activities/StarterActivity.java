@@ -69,57 +69,62 @@ public class StarterActivity extends AppCompatActivity {
                 .getRef();
         //deschisa pentru share
         //listener pentru conversatii fara sa preia mesajele pentru ca nu avem nevoie
-        userConvRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
-                //pentru fiecare conversatie care apare se preia cheia
-                String value = userConversationSnapshot.getValue(String.class);
-                //referinta catre conversatie din root-ul "conversations"
-                assert value != null;
-                DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
 
-                //pentru fiecare conversatie aparuta, preia datele
-                conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
-                        Conversation c = conversationSnapshot.getValue(Conversation.class);
-                        assert c != null;
-                        c.setKey(conversationSnapshot.getKey());
-                        User.addConversation(c);
-                    }
+        if(User.getConversations().getValue().size() == 0) {
+            //daca sunt incarcate deja conversatiile le dubleaza daca adaugam alt listener, asa ca
+            //va fi adaugat doar daca nu exista
+            userConvRef.addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
+                    //pentru fiecare conversatie care apare se preia cheia
+                    String value = userConversationSnapshot.getValue(String.class);
+                    //referinta catre conversatie din root-ul "conversations"
+                    assert value != null;
+                    DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+                    //pentru fiecare conversatie aparuta, preia datele
+                    conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
+                            Conversation c = conversationSnapshot.getValue(Conversation.class);
+                            assert c != null;
+                            c.setKey(conversationSnapshot.getKey());
+                            User.addConversation(c);
+                        }
 
-                    }
-                });
-            }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
 
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        }
+                    });
+                }
 
-            }
+                @Override
+                public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot userConversationSnapshot) {
-                //pentru fiecare conversatie care dispare se preia cheia pentru a putea sterge
-                String key = userConversationSnapshot.getValue(String.class);
-                User.removeConversation(key);
-            }
+                }
 
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot userConversationSnapshot) {
+                    //pentru fiecare conversatie care dispare se preia cheia pentru a putea sterge
+                    String key = userConversationSnapshot.getValue(String.class);
+                    User.removeConversation(key);
+                }
 
-            }
+                @Override
+                public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                }
 
-            }
-        });
-        Intent shareIntent = new Intent(this, ConversationListShareActivity.class);
-        //ii pases direct intent-ul primit
-        shareIntent.putExtras(extras);
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }
+        //ii pases direct intent-ul primit cu clasa schimbata
+        Intent shareIntent = getIntent();
+        shareIntent.setClass(this,ConversationListShareActivity.class);
         startActivity(shareIntent);
     }
     private void goToConversationsList(){
