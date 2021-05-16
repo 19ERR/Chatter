@@ -14,9 +14,13 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.bumptech.glide.Glide;
+import com.chatter.DAO.ChatterDatabase;
+import com.chatter.DAO.MediaDAO;
 import com.chatter.R;
+import com.chatter.classes.Media;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -33,6 +37,10 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import io.reactivex.Completable;
 
 //TODO: BUFFER GLOBAL IN ACTIVITATE PENTRU A TRIMITE TEXT SI POZA IN ACELAS TIMP
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder>{
@@ -69,36 +77,75 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         }
 
         if(messages.get(position).getMediaKey()!=null) {
-            FirebaseStorage storage = FirebaseStorage.getInstance();
-            StorageReference imageRef = storage.getReference().child(messages.get(position).getMediaKey());
-
-            File localFile = null;
-            try {
-                localFile = File.createTempFile("images", "jpg");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            File finalLocalFile = localFile;
-            imageRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            //verificare daca exista in room
+            //daca exista afiseaza
+            //daca nu exista, descarca, salveaza si afiseaza
+            Executor executor = Executors.newSingleThreadExecutor();
+            executor.execute(new Runnable() {
                 @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Bitmap img = BitmapFactory.decodeFile(finalLocalFile.getAbsolutePath());
-                    viewHolder.getImageView().setImageBitmap(img);
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                    // Handle any errors
+                public void run() {
+                    Context context = viewHolder.itemView.getContext();
+                    ChatterDatabase db = Room.databaseBuilder(context, ChatterDatabase.class, "media-database").build();
+                    MediaDAO mediaDAO = db.mediaDAO();
+                    Media media = mediaDAO.getByLink(messages.get(position).getMediaKey());
+                    if(media !=null){
+                        //daca exista local
+                        Bitmap img = BitmapFactory.decodeByteArray(media.data, 0, media.data.length);
+                        viewHolder.getImageView().setImageBitmap(img);
+                    } else {
+                        getMediaFromFirebase(messages.get(position).getMediaKey(), viewHolder);
+                    }
+
                 }
             });
         }
 
     }
 
+    public void getMediaFromFirebase(String mediaLink, MessagesAdapter.ViewHolder viewHolder){
+        //descarcare din firebase si salvare in local
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference imageRef = storage.getReference().child(mediaLink);
+
+        File localFile = null;
+        try {
+            localFile = File.createTempFile("images", "jpg");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File finalLocalFile = localFile;
+        imageRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                Bitmap img = BitmapFactory.decodeFile(finalLocalFile.getAbsolutePath());
+                viewHolder.getImageView().setImageBitmap(img);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                img.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                byte[] mediaBytes = baos.toByteArray();
+
+                Media media = new Media(imageRef.getPath(), 0, mediaBytes);
+                saveMedia(media, viewHolder.itemView.getContext());
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle any errors
+            }
+        });
+    }
     @Override
     public int getItemCount() {
         return messages.size();
+    }
+
+    //salvarea fisierelor media in baza de date room
+    private void saveMedia(Media media, Context context) {
+        ChatterDatabase db = Room.databaseBuilder(context,
+                ChatterDatabase.class, "media-database").build();
+
+        MediaDAO mediaDAO = db.mediaDAO();
+        mediaDAO.insertMedia(media);
     }
 
     private void makeOpponent(ViewHolder holder) {

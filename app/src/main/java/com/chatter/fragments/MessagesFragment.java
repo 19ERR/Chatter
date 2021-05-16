@@ -1,6 +1,7 @@
 package com.chatter.fragments;
 
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -17,10 +18,14 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
+import com.chatter.DAO.ChatterDatabase;
+import com.chatter.DAO.MediaDAO;
 import com.chatter.R;
 import com.chatter.adapters.MessagesAdapter;
 import com.chatter.classes.Conversation;
+import com.chatter.classes.Media;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.chatter.viewModels.MessagesViewModel;
@@ -82,6 +87,7 @@ public class MessagesFragment extends Fragment {
         }
 
     }
+
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         FloatingActionButton buttonSendMessage = view.findViewById(R.id.buttonSendMessage);
@@ -119,6 +125,7 @@ public class MessagesFragment extends Fragment {
         messagesViewModel.setMessagesLiveData(conversation.getMessages());
         messagesViewModel.getMessagesLiveData().observe(getViewLifecycleOwner(), messagesListUpdateObserver);
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -139,9 +146,9 @@ public class MessagesFragment extends Fragment {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] bytes = baos.toByteArray();
+        byte[] mediaBytes = baos.toByteArray();
 
-        UploadTask uploadTask = imageRef.putBytes(bytes);
+        UploadTask uploadTask = imageRef.putBytes(mediaBytes);
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
@@ -161,6 +168,9 @@ public class MessagesFragment extends Fragment {
                         Uri downloadUri = task.getResult();
                         Message newMessage = new Message(null, imageRef.getPath(), User.getEmail(), true);
                         newMessageRef.setValue(newMessage);
+
+                        Media media = new Media(imageRef.getPath(), 0, mediaBytes);
+                        saveMedia(media);
                     } else {
                         // Handle failures
                         // ...
@@ -169,6 +179,17 @@ public class MessagesFragment extends Fragment {
 
             }
         });
+    }
+
+    //salvarea fisierelor media in baza de date room
+    private void saveMedia(Media media) {
+        Context context = getContext();
+        assert context != null;
+        ChatterDatabase db = Room.databaseBuilder(context,
+                ChatterDatabase.class, "media-database").build();
+
+        MediaDAO mediaDAO = db.mediaDAO();
+        mediaDAO.insertMedia(media);
     }
 
     @Override

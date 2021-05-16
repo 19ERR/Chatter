@@ -20,6 +20,8 @@ import com.chatter.fragments.ConversationParticipantsFragment;
 import com.chatter.fragments.MessagesFragment;
 import com.google.android.material.navigation.NavigationView;
 
+//todo: pentru a ajunge inapoi la ecranul principal e nevoie sa se apese de 2 ori inapoi
+//todo: iconita pentru drawer
 public class ConversationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     Conversation conversation;
     DrawerLayout drawerLayout;
@@ -49,7 +51,7 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
         ActionBarDrawerToggle actionBarDrawerToggle =
                 new ActionBarDrawerToggle(this,drawerLayout, toolbar,
                         R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-
+        //actionBarDrawerToggle.setDrawerArrowDrawable(R.drawable);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -82,11 +84,14 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
     }
 
     private void showMedia(){
+        if(this.conversationMediaFragment == null){
+            this.conversationParticipantsFragment = new ConversationParticipantsFragment(conversation.getKey());
+        }
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.conversation_fragment, this.conversationMediaFragment)
                 .setReorderingAllowed(true)
-                .addToBackStack("participants")
+                .addToBackStack("media")
                 .commit();
     }
 
