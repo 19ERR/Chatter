@@ -25,7 +25,7 @@ public interface MediaDAO {
     Media getByLink(String mediaLink);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public Completable insertMedia(Media media);
+    Completable insertMedia(Media media);
 
     @Query("DELETE FROM media WHERE mediaLink = (:mediaLink)")
     void deleteMediaByLink(String mediaLink);

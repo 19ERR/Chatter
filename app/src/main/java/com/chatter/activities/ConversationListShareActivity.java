@@ -11,6 +11,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,6 +22,7 @@ import com.chatter.adapters.ConversationsShareAdapter;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
+import com.chatter.viewModels.ConversationsViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -28,16 +32,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 //todo: rezolvat cu redimensionarea imaginii din share
-public class ConversationListShareActivity extends Activity{
+public class ConversationListShareActivity extends AppCompatActivity {
 
     ConversationsShareAdapter conversationsAdapter;
+    ConversationsViewModel conversationsViewModel;
     RecyclerView recyclerView;
     Bitmap imageToShare;
     String linkToShare;
-//TODO: de facut adaptorul cu live data
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,8 +65,17 @@ public class ConversationListShareActivity extends Activity{
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(conversationsAdapter);
-    }
+        //adauga observer pentru lista de conversatii
+        conversationsViewModel = ViewModelProviders.of(this).get(ConversationsViewModel.class);
+        conversationsViewModel.getConversationsLiveData().observe(this,conversationsListUpdateObserver);
 
+    }
+    Observer<ArrayList<Conversation>> conversationsListUpdateObserver = new Observer<ArrayList<Conversation>>() {
+        @Override
+        public void onChanged(ArrayList<Conversation> conversationsArrayList) {
+            conversationsAdapter.notifyDataSetChanged();
+        }
+    };
 
     void handleSendText(Intent intent) {
         String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
