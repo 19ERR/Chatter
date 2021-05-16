@@ -62,7 +62,6 @@ public class MessagesFragment extends Fragment {
         public void onChanged(ArrayList<Message> messagesArrayList) {
             messagesAdapter.notifyItemInserted(conversation.getMessages().getValue().size() -1);
             recyclerView.smoothScrollToPosition(conversation.getMessages().getValue().size() -1);
-           // messagesAdapter.notifyDataSetChanged();
         }
     };
 
