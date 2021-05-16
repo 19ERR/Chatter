@@ -135,7 +135,7 @@ public class ConversationsShareAdapter extends RecyclerView.Adapter<Conversation
                 }).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Uri downloadUri = task.getResult();
-                        Message newMessage = new Message(null, imageRef.getPath(), User.getEmail());
+                        Message newMessage = new Message(null, imageRef.getPath(), User.getEmail(),true);
                         newMessageRef.setValue(newMessage);
                     } else {
                         // Handle failures

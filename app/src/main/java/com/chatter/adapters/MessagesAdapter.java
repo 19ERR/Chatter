@@ -12,19 +12,17 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
-import com.bumptech.glide.Glide;
 import com.chatter.DAO.ChatterDatabase;
 import com.chatter.DAO.MediaDAO;
 import com.chatter.R;
 import com.chatter.classes.Media;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.chatter.viewHolders.MessageViewHolder;
+import com.chatter.viewHolders.MessageWithMediaViewHolder;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FileDownloadTask;
@@ -40,11 +38,9 @@ import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import io.reactivex.Completable;
-
 //TODO: BUFFER GLOBAL IN ACTIVITATE PENTRU A TRIMITE TEXT SI POZA IN ACELAS TIMP
-public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder>{
-
+public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+    private final int NO_MEDIA = 0, WITH_MEDIA = 1;
     private final ArrayList<Message> messages;
     public MessagesAdapter(ArrayList<Message> messages) {
         this.messages = messages;
@@ -52,57 +48,132 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
-        View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.message_view, viewGroup, false);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        RecyclerView.ViewHolder viewHolder;
+        LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
 
-        return new ViewHolder(view);
+        switch (viewType) {
+            case WITH_MEDIA:
+                View mediaView = inflater.inflate(R.layout.message_with_media_view, viewGroup, false);
+                viewHolder = new MessageWithMediaViewHolder(mediaView);
+                break;
+            case NO_MEDIA:
+                View textView = inflater.inflate(R.layout.message_view, viewGroup, false);
+                viewHolder = new MessageViewHolder(textView);
+                break;
+            default:
+                View defaultView = inflater.inflate(R.layout.message_view, viewGroup, false);
+                viewHolder = new MessageViewHolder(defaultView);
+                break;
+        }
+        return viewHolder;
+
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
-        viewHolder.getTextViewMessageSender().setText(messages.get(position).getSenderEmail());
-        viewHolder.getTextViewMessageContent().setText(messages.get(position).getTextContent());
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
+        switch (viewHolder.getItemViewType()) {
+            case NO_MEDIA:
+                MessageViewHolder vh1 = (MessageViewHolder) viewHolder;
+                bindWithOutMedia(vh1, position);
+                break;
+            case WITH_MEDIA:
+                MessageWithMediaViewHolder vh2 = (MessageWithMediaViewHolder) viewHolder;
+                bindWithMedia(vh2, position);
+                break;
+
+        }
+    }
+
+    private void bindWithMedia(MessageWithMediaViewHolder viewHolder, int position){
+        Message message = messages.get(position);
+        viewHolder.getTextViewMessageSender().setText(message.getSenderEmail());
+        viewHolder.getTextViewMessageContent().setText(message.getTextContent());
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm");
         viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.get(position).getTimestamp()));
-        viewHolder.itemView.setOnClickListener(v -> {
-        });
-        if (User.getEmail().equals(messages.get(position).getSenderEmail())) {
-            //la dreapta
-           makeOwn(viewHolder);
+        if(position != 0 ){
+            if(messages.get(position -1 ).getSenderEmail().equals(message.getSenderEmail())) {
+                viewHolder.getTextViewMessageSender().setVisibility(View.INVISIBLE);
+            }
+        }
+
+        if (User.getEmail().equals(message.getSenderEmail())) {
+            viewHolder.getTextViewMessageSender().setVisibility(View.GONE);//ascunde numele meu
+            RelativeLayout.LayoutParams params =
+                    (RelativeLayout.LayoutParams) viewHolder.getRelativeLayout().getLayoutParams();
+            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);//aliniere la dreapta
+            viewHolder.getRelativeLayout().setLayoutParams(params);
         } else {
-            //la stanga
-            makeOpponent(viewHolder);
+            RelativeLayout.LayoutParams params =
+                    (RelativeLayout.LayoutParams) viewHolder.getRelativeLayout().getLayoutParams();
+            params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);//aliniere la dreapta
+            viewHolder.getRelativeLayout().setLayoutParams(params);
         }
 
-        if(messages.get(position).getMediaKey()!=null) {
-            //verificare daca exista in room
-            //daca exista afiseaza
-            //daca nu exista, descarca, salveaza si afiseaza
-            Executor executor = Executors.newSingleThreadExecutor();
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    Context context = viewHolder.itemView.getContext();
-                    ChatterDatabase db = Room.databaseBuilder(context, ChatterDatabase.class, "media-database").build();
-                    MediaDAO mediaDAO = db.mediaDAO();
-                    Media media = mediaDAO.getByLink(messages.get(position).getMediaKey());
-                    if(media !=null){
-                        //daca exista local
-                        Bitmap img = BitmapFactory.decodeByteArray(media.data, 0, media.data.length);
-                        viewHolder.getImageView().setImageBitmap(img);
-                    } else {
-                        getMediaFromFirebase(messages.get(position).getMediaKey(), viewHolder);
-                    }
-
+        //verificare daca exista in room
+        //daca exista afiseaza
+        //daca nu exista, descarca, salveaza si afiseaza
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                Context context = viewHolder.itemView.getContext();
+                ChatterDatabase db = Room.databaseBuilder(context, ChatterDatabase.class, "media-database").build();
+                MediaDAO mediaDAO = db.mediaDAO();
+                Media media = mediaDAO.getByLink(messages.get(position).getMediaKey());
+                if(media !=null){
+                    //daca exista local
+                    Bitmap img = BitmapFactory.decodeByteArray(media.data, 0, media.data.length);
+                    viewHolder.getImageView().setImageBitmap(img);
+                } else {
+                    getMediaFromFirebase(messages.get(position).getMediaKey(), viewHolder);
                 }
-            });
-        }
+
+            }
+        });
+        viewHolder.getImageView().setVisibility(View.VISIBLE);
 
     }
 
-    public void getMediaFromFirebase(String mediaLink, MessagesAdapter.ViewHolder viewHolder){
+    private void bindWithOutMedia(MessageViewHolder viewHolder, int position){
+        Message message = messages.get(position);
+        viewHolder.getTextViewMessageSender().setText(message.getSenderEmail());
+        viewHolder.getTextViewMessageContent().setText(message.getTextContent());
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm");
+        viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.get(position).getTimestamp()));
+        if(position != 0 ){
+            if(messages.get(position -1 ).getSenderEmail().equals(message.getSenderEmail())) {
+                viewHolder.getTextViewMessageSender().setVisibility(View.INVISIBLE);
+            }
+        }
+
+        if (User.getEmail().equals(message.getSenderEmail())) {
+            viewHolder.getTextViewMessageSender().setVisibility(View.GONE);//ascunde numele meu
+            RelativeLayout.LayoutParams params =
+                    (RelativeLayout.LayoutParams) viewHolder.getRelativeLayout().getLayoutParams();
+            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);//aliniere la dreapta
+            viewHolder.getRelativeLayout().setLayoutParams(params);
+        } else {
+            RelativeLayout.LayoutParams params =
+                    (RelativeLayout.LayoutParams) viewHolder.getRelativeLayout().getLayoutParams();
+            params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);//aliniere la dreapta
+            viewHolder.getRelativeLayout().setLayoutParams(params);
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (messages.get(position).getContainsMedia()) {
+            return WITH_MEDIA;
+        } else if (!messages.get(position).getContainsMedia()) {
+            return NO_MEDIA;
+        }
+        return -1;
+    }
+
+    public void getMediaFromFirebase(String mediaLink, MessageWithMediaViewHolder viewHolder){
         //descarcare din firebase si salvare in local
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference imageRef = storage.getReference().child(mediaLink);
@@ -148,55 +219,5 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         mediaDAO.insertMedia(media);
     }
 
-    private void makeOpponent(ViewHolder holder) {
-        RelativeLayout.LayoutParams params =
-                (RelativeLayout.LayoutParams) holder.relativeLayout.getLayoutParams();
-        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);//aliniere la stanga
-        holder.relativeLayout.setLayoutParams(params);
-    }
-
-    private void makeOwn(ViewHolder holder) {
-        holder.textViewMessageSender.setVisibility(View.GONE);//ascunde numele meu
-        RelativeLayout.LayoutParams params =
-                (RelativeLayout.LayoutParams) holder.relativeLayout.getLayoutParams();
-        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);//aliniere la dreapta
-        holder.relativeLayout.setLayoutParams(params);
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        private final ImageView imageView;
-        private final TextView textViewMessageContent;
-        private final TextView textViewMessageSender;
-        private final TextView textViewMessageTimestamp;
-        private final CardView cardView;
-        private final RelativeLayout relativeLayout;
-
-        public ViewHolder(View view) {
-            super(view);
-            imageView = view.findViewById(R.id.imageView);
-            textViewMessageContent = view.findViewById(R.id.textViewMessageContent);
-            textViewMessageSender = view.findViewById(R.id.textViewMessageSender);
-            textViewMessageTimestamp = view.findViewById(R.id.textViewMessageTimestamp);
-            cardView = view.findViewById(R.id.card_view_message);
-            relativeLayout = itemView.findViewById(R.id.layout_message_view);
-        }
-
-        public ImageView getImageView() {return imageView;}
-        public CardView getCardView() {
-            return cardView;
-        }
-
-        public TextView getTextViewMessageContent() {
-            return textViewMessageContent;
-        }
-
-        public TextView getTextViewMessageSender() {
-            return textViewMessageSender;
-        }
-
-        public TextView getTextViewMessageTimestamp() {
-            return textViewMessageTimestamp;
-        }
-    }
 
 }

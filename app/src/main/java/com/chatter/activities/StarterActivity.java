@@ -34,7 +34,11 @@ public class StarterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_starter);
+    }
 
+    @Override
+    protected void onStart(){
+        super.onStart();
         FirebaseUser mUser= FirebaseAuth.getInstance().getCurrentUser();
         if (mUser == null) {
             Intent logInIntent = new Intent(this, LoginActivity.class);
@@ -49,18 +53,12 @@ public class StarterActivity extends AppCompatActivity {
                 goToConversationsList();
             } else {
                 Toast.makeText(this,"Share",Toast.LENGTH_LONG).show();
-                goToShareConversationsList(intent.getExtras());
+                goToShareConversationsList();
             }
         }
-        finish();
+        //finish();//termin activitatea altfel la share nu o sa intre in on create
     }
-
-    @Override
-    protected void onStart(){
-        super.onStart();
-
-    }
-    private void goToShareConversationsList(Bundle extras){
+    private void goToShareConversationsList(){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference userConvRef = database.getReference()
                 .child("users")

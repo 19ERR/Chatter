@@ -35,7 +35,6 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Objects;
 
-//TODO: implementare persistenta locala
 public class ConversationMediaFragment extends Fragment {
 
     Conversation conversation;

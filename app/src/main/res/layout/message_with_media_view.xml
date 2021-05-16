@@ -42,6 +42,18 @@
                     android:layout_height="wrap_content"
                     android:textAlignment="center" />
 
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:maxWidth="250dp"
+                    android:maxHeight="100dp"
+                    android:minWidth="250dp"
+                    android:minHeight="100dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="invisible" />
+
                 <TextView
                     android:id="@+id/textViewMessageContent"
                     android:layout_width="wrap_content"
