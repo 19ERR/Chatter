@@ -3,6 +3,7 @@
     package="com.chatter">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -14,39 +15,54 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Chatter">
-        <activity
-            android:name=".activities.ConversationListShareActivity"
-            android:label="@string/title_activity_conversation_list_share">
+
+        <activity android:name=".activities.StarterActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="image/*" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".activities.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".activities.ConversationListShareActivity"
+            android:label="@string/title_activity_conversation_list_share">
+        </activity>
+
         <activity
             android:name=".activities.ContactListActivity"
             android:label="@string/title_activity_contact_list"
             android:theme="@style/Theme.Chatter.NoActionBar" />
+
         <activity
             android:name=".activities.ConversationsListActivity"
             android:label="@string/title_activity_conversations_list"
             android:theme="@style/Theme.Chatter.NoActionBar" />
+
         <activity
             android:name=".activities.ConversationActivity"
             android:label="@string/title_activity_conversation"
             android:theme="@style/Theme.Chatter.NoActionBar" />
-        <activity android:name=".activities.LoginActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>

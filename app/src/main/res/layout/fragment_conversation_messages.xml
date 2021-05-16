@@ -15,6 +15,7 @@
             android:id="@+id/recycle_message_list"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:background="#E6E4E4"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@+id/frameLayout"
             app:layout_constraintEnd_toEndOf="parent"
@@ -52,13 +53,14 @@
                 android:inputType="textMultiLine"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/buttonSendMessage"
-                app:layout_constraintStart_toEndOf="@+id/buttonTakePhoto"
+                app:layout_constraintStart_toEndOf="@+id/buttonSendOthers"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.0"
                 tools:ignore="LabelFor" />
 
+
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/buttonTakePhoto"
+                android:id="@+id/buttonSendOthers"
                 android:layout_width="wrap_content"
                 android:layout_height="56dp"
                 android:clickable="true"
@@ -66,7 +68,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/editTextMessage"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@android:drawable/ic_menu_camera"
+                app:srcCompat="@android:drawable/ic_input_add"
                 tools:ignore="ContentDescription" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 

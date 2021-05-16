@@ -151,15 +151,15 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
     private void makeOpponent(ViewHolder holder) {
         RelativeLayout.LayoutParams params =
                 (RelativeLayout.LayoutParams) holder.relativeLayout.getLayoutParams();
-        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);//aliniere la stanga
         holder.relativeLayout.setLayoutParams(params);
     }
 
     private void makeOwn(ViewHolder holder) {
-        holder.textViewMessageSender.setVisibility(View.GONE);
+        holder.textViewMessageSender.setVisibility(View.GONE);//ascunde numele meu
         RelativeLayout.LayoutParams params =
                 (RelativeLayout.LayoutParams) holder.relativeLayout.getLayoutParams();
-        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);//aliniere la dreapta
         holder.relativeLayout.setLayoutParams(params);
     }
 

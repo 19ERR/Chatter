@@ -41,6 +41,8 @@ import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity implements RegisterDialog.finishRegisterDialogListener {
     private static final int RC_SIGN_IN = 9001;
+    private static final int RC_USER_LOGGED_IN = 1005;
+    private static final int RC_USER_NOT_LOGGED_IN = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +56,6 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
 
     protected void onStart() {
         super.onStart();
-        FirebaseUser mUser= FirebaseAuth.getInstance().getCurrentUser();
-
-        if (mUser != null) {
-            User.setEmail(mUser.getEmail());
-            userIsAuthenticated();
-        }
     }
 
     @Override
@@ -84,13 +80,14 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
-                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                addUserInDatabase();
                                 userIsAuthenticated();
                             } else {
                                 userNotAuthenticated();
                             }
                         }
                     });
+
         } catch (ApiException e) {
             userNotAuthenticated();
         }
@@ -137,11 +134,8 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
-    private void userIsAuthenticated() {
-        Intent intent = new Intent(this, ConversationsListActivity.class);
-
+    private void addUserInDatabase(){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        //database.setPersistenceEnabled(true);
         DatabaseReference usersRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid());
 
         //cauta utilizatorul in users
@@ -150,139 +144,28 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    DataSnapshot sn = snapshot.getChildren().iterator().next();
-
-                } else {
+                if (!snapshot.exists()) {
                     DatabaseReference dbRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid());
                     dbRef.child("email").setValue(User.getEmail());
                 }
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                //listener pentru contacte
-                DatabaseReference userContactsRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid()).child("contacts");
-                userContactsRef.addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                        Contact newContact = snapshot.getValue(Contact.class);
-                        assert newContact != null;
-                        newContact.setKey(snapshot.getKey());
-                        User.addContact(newContact);
-                    }
-
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-                        User.removeContact(snapshot.getKey());
-                    }
-
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-
-                startActivity(intent);
 
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
             }
         });
 
-        //listener pentru conversatii
-        DatabaseReference userConvRef = database.getReference().child("users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).child("user_conversations").getRef();
-        userConvRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
-                //pentru fiecare conversatie care apare se preia cheia
-                String value = userConversationSnapshot.getValue(String.class);
-                //referinta catre conversatie din root-ul "conversations"
-                assert value != null;
-                DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
+    }
 
-                //pentru fiecare conversatie aparuta, preia datele
-                conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot conversationSnapshot) {
-                        Conversation c = conversationSnapshot.getValue(Conversation.class);
-                        assert c != null;
-                        c.setKey(conversationSnapshot.getKey());
-                        User.addConversation(c);
-
-                        //de adaugat listener pentru mesaje
-                        DatabaseReference messagesRef = database.getReference().child("messages").child(conversationSnapshot.getKey()).getRef();
-                        messagesRef.addChildEventListener(new ChildEventListener() {
-                            @Override
-                            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                                Message newMessage = snapshot.getValue(Message.class);
-                                newMessage.setKey(snapshot.getKey());
-                                c.addMessage(newMessage);
-                            }
-
-                            @Override
-                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                            }
-
-                            @Override
-                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-                            }
-
-                            @Override
-                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot userConversationSnapshot) {
-                //pentru fiecare conversatie care dispare se preia cheia pentru a putea sterge
-                String key = userConversationSnapshot.getValue(String.class);
-                User.removeConversation(key);
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
+    private void userIsAuthenticated() {
+        //intoarce-te cu cod RC_USER_LOGGED_IN
+        this.setResult(RC_USER_LOGGED_IN, null);
+        this.finish();
     }
 
     private void userNotAuthenticated() {
+        this.setResult(RC_USER_NOT_LOGGED_IN, null);
+        this.finish();
     }
 
     private void register() {
@@ -295,6 +178,7 @@ public class LoginActivity extends AppCompatActivity implements RegisterDialog.f
     public void onFinishRegisterDialog(String newUserEmail) {
         User.setEmail(newUserEmail);
         Toast.makeText(this, "Hi, " + User.getEmail(), Toast.LENGTH_SHORT).show();
+        addUserInDatabase();
         userIsAuthenticated();
     }
 }

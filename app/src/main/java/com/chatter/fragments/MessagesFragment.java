@@ -8,9 +8,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -88,6 +91,17 @@ public class MessagesFragment extends Fragment {
 
     }
 
+    private void sendPhoto(){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        try {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        } catch (ActivityNotFoundException e) {
+            // display error state to the user
+        }
+    }
+    private void sendLocation(){
+
+    }
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         FloatingActionButton buttonSendMessage = view.findViewById(R.id.buttonSendMessage);
@@ -102,14 +116,26 @@ public class MessagesFragment extends Fragment {
             inputEditTextMessage.setText("");
         });
 
-        FloatingActionButton buttonTakePhoto = view.findViewById(R.id.buttonTakePhoto);
+        FloatingActionButton buttonTakePhoto = view.findViewById(R.id.buttonSendOthers);
         buttonTakePhoto.setOnClickListener(v -> {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            try {
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            } catch (ActivityNotFoundException e) {
-                // display error state to the user
-            }
+            PopupMenu popup = new PopupMenu(this.getContext(), v);
+            MenuInflater inflater = popup.getMenuInflater();
+            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    switch (item.getItemId()){
+                        case R.id.itemSendPhoto:
+                           sendPhoto();
+                           break;
+                        case R.id.itemSendLocation:
+                            sendLocation();
+                            break;
+                    }
+                    return true;
+                }
+            });
+            inflater.inflate(R.menu.conversation_send_additional_items, popup.getMenu());
+            popup.show();
         });
 
         recyclerView = view.findViewById(R.id.recycle_message_list);

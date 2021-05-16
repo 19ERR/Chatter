@@ -10,6 +10,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycle_conversation_participants_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:background="#E6E4E4"/>
 
 </FrameLayout>

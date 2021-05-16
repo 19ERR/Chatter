@@ -7,12 +7,28 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chatter.R;
 import com.chatter.adapters.ConversationsShareAdapter;
+import com.chatter.classes.Conversation;
+import com.chatter.classes.Message;
+import com.chatter.classes.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.Objects;
 
 //todo: rezolvat cu redimensionarea imaginii din share
 public class ConversationListShareActivity extends Activity{
@@ -21,11 +37,12 @@ public class ConversationListShareActivity extends Activity{
     RecyclerView recyclerView;
     Bitmap imageToShare;
     String linkToShare;
-
+//TODO: de facut adaptorul cu live data
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation_list_share);
+
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
@@ -37,13 +54,13 @@ public class ConversationListShareActivity extends Activity{
                 handleSendImage(intent); // Handle single image being sent
             }
         }
-
         conversationsAdapter = new ConversationsShareAdapter(imageToShare, linkToShare);
         recyclerView = findViewById(R.id.recycle_conversation_list_share);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(conversationsAdapter);
     }
+
 
     void handleSendText(Intent intent) {
         String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
