@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -30,10 +29,12 @@ import com.chatter.R;
 import com.chatter.activities.MapsActivity;
 import com.chatter.adapters.MessagesAdapter;
 import com.chatter.classes.Conversation;
+import com.chatter.classes.Location;
 import com.chatter.classes.Media;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.chatter.viewModels.MessagesViewModel;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -120,15 +121,15 @@ public class MessagesFragment extends Fragment {
             EditText inputEditTextMessage = getView().findViewById(R.id.editTextMessage);
             String messageContent = inputEditTextMessage.getText().toString();
 
-            Message newMessage = new Message(messageContent, null, User.getEmail());
+            Message newMessage = new Message(messageContent);
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
             convRef.setValue(newMessage);
             inputEditTextMessage.setText("");
         });
 
-        FloatingActionButton buttonTakePhoto = view.findViewById(R.id.buttonSendOthers);
-        buttonTakePhoto.setOnClickListener(v -> {
+        FloatingActionButton buttonSendOthers = view.findViewById(R.id.buttonSendOthers);
+        buttonSendOthers.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(this.getContext(), v);
             MenuInflater inflater = popup.getMenuInflater();
             popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -203,7 +204,7 @@ public class MessagesFragment extends Fragment {
                 }).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Uri downloadUri = task.getResult();
-                        Message newMessage = new Message(null, imageRef.getPath(), User.getEmail(), true);
+                        Message newMessage = new Message(imageRef.getPath(), true);
                         newMessageRef.setValue(newMessage);
 
                         Media media = new Media(imageRef.getPath(), 0, mediaBytes);
@@ -237,11 +238,17 @@ public class MessagesFragment extends Fragment {
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             uploadPhoto(imageBitmap);
         }
-        if (requestCode == REQUEST_LOCATION && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_LOCATION && resultCode == 1) {
             Bundle extras = data.getExtras();
-            Location location = (Location) extras.get("location");
-            //TODO: send location
+            LatLng location = (LatLng) extras.get("selectedLocation");
+            sendLocationMessage(location);
         }
     }
 
+    private void sendLocationMessage(LatLng coordonates){
+        Message newMessage = new Message(new Location(coordonates));
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
+        convRef.setValue(newMessage);
+    }
 }

@@ -22,21 +22,23 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener,
-        GoogleMap.OnMyLocationClickListener,
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean permissionDenied = false;
 
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
-    Location lastLocation = null;
-    Location selectedLocation = null;
+    private Marker marker;
+    private Location lastLocation = null;
+    private LatLng selectedLocationCoordinates = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,13 +53,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         buttonSendLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(selectedLocation != null) {
-                    Intent returnIntent = new Intent();
-                    returnIntent.putExtra("selectedLocation", selectedLocation);
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("selectedLocation", selectedLocationCoordinates);
 
-                    setResult(1, returnIntent);
-                    finish();
-                }
+                setResult(1, returnIntent);
+                finish();
+
             }
         });
 
@@ -65,9 +66,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         buttonGoToCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(lastLocation.getLatitude(),
-                                lastLocation.getLongitude()), mMap.getMaxZoomLevel()));
+                getDeviceLocation();
             }
         });
 
@@ -77,8 +76,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(@NonNull LatLng latLng) {
+                if(marker != null) {
+                    marker.remove();
+                }
+                selectedLocationCoordinates = latLng;
+                marker = mMap.addMarker(new MarkerOptions()
+                        .position(selectedLocationCoordinates)
+                        .title("Selected location"));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        selectedLocationCoordinates, mMap.getMaxZoomLevel()));
+            }
+        });
         getDeviceLocation();
 
     }
@@ -99,13 +110,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public void onComplete(@NonNull Task<Location> task) {
                     if (task.isSuccessful()) {
-                        // Set the map's camera position to the current location of the device.
-                        lastLocation = task.getResult();
-                        if (lastLocation != null) {
-                            selectedLocation = lastLocation;
+                        Location aux = task.getResult();
+                        if(aux != null) {
+                            if (lastLocation == null) { // lastLocation null cand se deschide prima oara activitatea
+                                //adaug marker acum la pornire, in rest pune doar utilizatorul
+                                selectedLocationCoordinates = new LatLng(aux.getLatitude(), aux.getLongitude());
+                                marker = mMap.addMarker(new MarkerOptions()
+                                        .position(selectedLocationCoordinates)
+                                        .title("Current location"));
+                            }
+                            lastLocation = task.getResult();
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(lastLocation.getLatitude(),
-                                            lastLocation.getLongitude()), mMap.getMaxZoomLevel()));
+                                            lastLocation.getLongitude()), 3));
+
                         }
                     }
                 }
@@ -127,18 +145,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
                     Manifest.permission.ACCESS_FINE_LOCATION, true);
         }
-    }
-
-    @SuppressLint("MissingPermission")
-    @Override
-    public boolean onMyLocationButtonClick() {
-        getDeviceLocation();
-        return false;
-    }
-
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
     }
 
     @Override

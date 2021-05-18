@@ -6,12 +6,9 @@ import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
@@ -22,7 +19,15 @@ import com.chatter.classes.Media;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
 import com.chatter.viewHolders.MessageViewHolder;
+import com.chatter.viewHolders.MessageWithLocationViewHolder;
 import com.chatter.viewHolders.MessageWithMediaViewHolder;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FileDownloadTask;
@@ -40,7 +45,7 @@ import java.util.concurrent.Executors;
 
 //TODO: BUFFER GLOBAL IN ACTIVITATE PENTRU A TRIMITE TEXT SI POZA IN ACELAS TIMP
 public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
-    private final int NO_MEDIA = 0, WITH_MEDIA = 1;
+    private final int SIMPLE_TEXT = 0, WITH_MEDIA = 1, LOCATION = 2;
     private final ArrayList<Message> messages;
     public MessagesAdapter(ArrayList<Message> messages) {
         this.messages = messages;
@@ -57,9 +62,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 View mediaView = inflater.inflate(R.layout.message_with_media_view, viewGroup, false);
                 viewHolder = new MessageWithMediaViewHolder(mediaView);
                 break;
-            case NO_MEDIA:
-                View textView = inflater.inflate(R.layout.message_view, viewGroup, false);
-                viewHolder = new MessageViewHolder(textView);
+            case LOCATION:
+                View locationView = inflater.inflate(R.layout.message_with_location_view, viewGroup, false);
+                viewHolder = new MessageWithLocationViewHolder(locationView);
                 break;
             default:
                 View defaultView = inflater.inflate(R.layout.message_view, viewGroup, false);
@@ -73,13 +78,17 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
         switch (viewHolder.getItemViewType()) {
-            case NO_MEDIA:
-                MessageViewHolder vh1 = (MessageViewHolder) viewHolder;
-                bindWithOutMedia(vh1, position);
+            case SIMPLE_TEXT:
+                MessageViewHolder vhs = (MessageViewHolder) viewHolder;
+                bindSimpleText(vhs, position);
                 break;
             case WITH_MEDIA:
-                MessageWithMediaViewHolder vh2 = (MessageWithMediaViewHolder) viewHolder;
-                bindWithMedia(vh2, position);
+                MessageWithMediaViewHolder vhm = (MessageWithMediaViewHolder) viewHolder;
+                bindWithMedia(vhm, position);
+                break;
+            case LOCATION:
+                MessageWithLocationViewHolder vhl = (MessageWithLocationViewHolder) viewHolder;
+                bindLocation(vhl, position);
                 break;
 
         }
@@ -136,7 +145,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     }
 
-    private void bindWithOutMedia(MessageViewHolder viewHolder, int position){
+    private void bindSimpleText(MessageViewHolder viewHolder, int position){
         Message message = messages.get(position);
         viewHolder.getTextViewMessageSender().setText(message.getSenderEmail());
         viewHolder.getTextViewMessageContent().setText(message.getTextContent());
@@ -163,14 +172,57 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+    private void bindLocation(MessageWithLocationViewHolder viewHolder, int position){
+        Message message = messages.get(position);
+        viewHolder.getTextViewMessageSender().setText(message.getSenderEmail());
+        viewHolder.getTextViewMessageContent().setText(message.getTextContent());
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm");
+        viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.get(position).getTimestamp()));
+
+        /*if(position != 0 ){
+            if(messages.get(position -1 ).getSenderEmail().equals(message.getSenderEmail())) {
+                viewHolder.getTextViewMessageSender().setVisibility(View.INVISIBLE);
+            }
+        }*/
+
+        if (User.getEmail().equals(message.getSenderEmail())) {
+            viewHolder.getTextViewMessageSender().setVisibility(View.GONE);//ascunde numele meu
+            RelativeLayout.LayoutParams params =
+                    (RelativeLayout.LayoutParams) viewHolder.getRelativeLayout().getLayoutParams();
+            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);//aliniere la dreapta
+            viewHolder.getRelativeLayout().setLayoutParams(params);
+        } else {
+            RelativeLayout.LayoutParams params =
+                    (RelativeLayout.LayoutParams) viewHolder.getRelativeLayout().getLayoutParams();
+            params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);//aliniere la dreapta
+            viewHolder.getRelativeLayout().setLayoutParams(params);
+        }
+
+        MapView mapView = (MapView)viewHolder.getMapView();
+
+        mapView.onCreate(null);
+        mapView.getMapAsync(new OnMapReadyCallback() {
+
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                LatLng coordinates = new LatLng(message.getLocation().getLatitude(), message.getLocation().getLatitude());
+                googleMap.addMarker(new MarkerOptions().position(coordinates));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 15));
+                mapView.onResume();
+            }
+        });
+    }
+
     @Override
     public int getItemViewType(int position) {
         if (messages.get(position).getContainsMedia()) {
             return WITH_MEDIA;
-        } else if (!messages.get(position).getContainsMedia()) {
-            return NO_MEDIA;
+        } else if (messages.get(position).getContainsLocation()){
+            return LOCATION;
+        } else {
+            return SIMPLE_TEXT;
         }
-        return -1;
     }
 
     public void getMediaFromFirebase(String mediaLink, MessageWithMediaViewHolder viewHolder){
@@ -201,7 +253,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                // Handle any errors
+                //TODO:afiseaza ceva standard
             }
         });
     }

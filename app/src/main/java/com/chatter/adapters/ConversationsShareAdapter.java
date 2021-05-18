@@ -72,7 +72,7 @@ public class ConversationsShareAdapter extends RecyclerView.Adapter<Conversation
             viewHolder.buttonShare.setClickable(false);
             Message newMessage;
             if (sharedLink != null) {
-                newMessage = new Message(sharedLink, null, User.getEmail());
+                newMessage = new Message(sharedLink);
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
                 convRef.setValue(newMessage);
@@ -135,7 +135,7 @@ public class ConversationsShareAdapter extends RecyclerView.Adapter<Conversation
                 }).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Uri downloadUri = task.getResult();
-                        Message newMessage = new Message(null, imageRef.getPath(), User.getEmail(),true);
+                        Message newMessage = new Message(imageRef.getPath(),true);
                         newMessageRef.setValue(newMessage);
                     } else {
                         // Handle failures
