@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.chatter">
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature
@@ -15,10 +15,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Chatter">
+        <activity android:name=".activities.MapsActivity" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
 
         <activity android:name=".activities.StarterActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
@@ -43,33 +49,26 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-
         <activity android:name=".activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".activities.ConversationListShareActivity"
-            android:label="@string/title_activity_conversation_list_share">
-        </activity>
-
+            android:label="@string/title_activity_conversation_list_share" />
         <activity
             android:name=".activities.ContactListActivity"
             android:label="@string/title_activity_contact_list"
             android:theme="@style/Theme.Chatter.NoActionBar" />
-
         <activity
             android:name=".activities.ConversationsListActivity"
             android:label="@string/title_activity_conversations_list"
             android:theme="@style/Theme.Chatter.NoActionBar" />
-
         <activity
             android:name=".activities.ConversationActivity"
             android:label="@string/title_activity_conversation"
             android:theme="@style/Theme.Chatter.NoActionBar" />
-
     </application>
 
 </manifest>

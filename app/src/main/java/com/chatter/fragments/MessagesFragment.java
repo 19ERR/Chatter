@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -26,6 +27,7 @@ import androidx.room.Room;
 import com.chatter.DAO.ChatterDatabase;
 import com.chatter.DAO.MediaDAO;
 import com.chatter.R;
+import com.chatter.activities.MapsActivity;
 import com.chatter.adapters.MessagesAdapter;
 import com.chatter.classes.Conversation;
 import com.chatter.classes.Media;
@@ -53,10 +55,13 @@ import static android.app.Activity.RESULT_OK;
 
 public class MessagesFragment extends Fragment {
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_LOCATION = 10;
+
     Conversation conversation;
     MessagesAdapter messagesAdapter;
     MessagesViewModel messagesViewModel;
     RecyclerView recyclerView;
+
     Observer<ArrayList<Message>> messagesListUpdateObserver = new Observer<ArrayList<Message>>() {
         @Override
         public void onChanged(ArrayList<Message> messagesArrayList) {
@@ -101,7 +106,12 @@ public class MessagesFragment extends Fragment {
         }
     }
     private void sendLocation(){
-
+        Intent sendLocationIntent = new Intent(this.getContext(), MapsActivity.class);
+        try {
+            startActivityForResult(sendLocationIntent, REQUEST_LOCATION);
+        } catch (ActivityNotFoundException e) {
+            // display error state to the user
+        }
     }
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -226,6 +236,11 @@ public class MessagesFragment extends Fragment {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             uploadPhoto(imageBitmap);
+        }
+        if (requestCode == REQUEST_LOCATION && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Location location = (Location) extras.get("location");
+            //TODO: send location
         }
     }
 
