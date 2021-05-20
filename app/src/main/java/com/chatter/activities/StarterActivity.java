@@ -162,6 +162,7 @@ public class StarterActivity extends AppCompatActivity {
             }
         });
 
+        //listener pentru conversatii
         DatabaseReference userConvRef = database.getReference()
                 .child("users")
                 .child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
@@ -172,10 +173,10 @@ public class StarterActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
                 //pentru fiecare conversatie care apare se preia cheia
-                String value = userConversationSnapshot.getKey();
+                String key = userConversationSnapshot.getKey();
                 //referinta catre conversatie din root-ul "conversations"
-                assert value != null;
-                DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
+                assert key != null;
+                DatabaseReference conversationsRef = database.getReference().child("conversations").child(key).getRef();
 
                 //pentru fiecare conversatie aparuta, preia datele
                 conversationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -232,8 +233,6 @@ public class StarterActivity extends AppCompatActivity {
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot userConversationSnapshot) {
-                //pentru fiecare conversatie care dispare se preia cheia pentru a putea sterge
-                User.removeConversation(userConversationSnapshot.getKey());
             }
 
             @Override

@@ -33,7 +33,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-//todo: pentru a ajunge inapoi la ecranul principal e nevoie sa se apese de 2 ori inapoi
 //todo: iconita pentru drawer
 public class ConversationActivity
         extends AppCompatActivity
@@ -168,6 +167,7 @@ public class ConversationActivity
                     .child(conversation.getKey());
             finish();
             ref.removeValue();
+            User.removeConversation(conversation.getKey());
         }
     }
 }

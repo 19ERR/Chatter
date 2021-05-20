@@ -114,19 +114,20 @@ public class MessagesFragment extends Fragment {
             // display error state to the user
         }
     }
+    private void sendMessage(){
+        EditText inputEditTextMessage = getView().findViewById(R.id.editTextMessage);
+        String messageContent = inputEditTextMessage.getText().toString();
+
+        Message newMessage = new Message(messageContent);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
+        convRef.setValue(newMessage);
+        inputEditTextMessage.setText("");
+    }
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         FloatingActionButton buttonSendMessage = view.findViewById(R.id.buttonSendMessage);
-        buttonSendMessage.setOnClickListener(v -> {
-            EditText inputEditTextMessage = getView().findViewById(R.id.editTextMessage);
-            String messageContent = inputEditTextMessage.getText().toString();
-
-            Message newMessage = new Message(messageContent);
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
-            convRef.setValue(newMessage);
-            inputEditTextMessage.setText("");
-        });
+        buttonSendMessage.setOnClickListener(v -> sendMessage());
 
         FloatingActionButton buttonSendOthers = view.findViewById(R.id.buttonSendOthers);
         buttonSendOthers.setOnClickListener(v -> {

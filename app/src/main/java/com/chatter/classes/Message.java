@@ -26,6 +26,7 @@ public class Message {
         this.containsMedia = containsMedia;
     }
     public Message(String textContent) {
+        this.senderEmail = User.getEmail();
         this.timestamp = new Date();
         this.textContent = textContent;
     }
