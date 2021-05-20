@@ -104,6 +104,8 @@ public class StarterActivity extends AppCompatActivity {
 
                 @Override
                 public void onChildRemoved(@NonNull DataSnapshot userConversationSnapshot) {
+
+                    //todo; de facut curat
                     //pentru fiecare conversatie care dispare se preia cheia pentru a putea sterge
                     String key = userConversationSnapshot.getValue(String.class);
                     User.removeConversation(key);
@@ -127,11 +129,7 @@ public class StarterActivity extends AppCompatActivity {
     }
     private void goToConversationsList(){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference userConvRef = database.getReference()
-                .child("users")
-                .child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
-                .child("user_conversations")
-                .getRef();
+
         //listener pentru contacte
         DatabaseReference userContactsRef = database.getReference("users").child(FirebaseAuth.getInstance().getUid()).child("contacts");
         userContactsRef.addChildEventListener(new ChildEventListener() {
@@ -163,12 +161,18 @@ public class StarterActivity extends AppCompatActivity {
 
             }
         });
+
+        DatabaseReference userConvRef = database.getReference()
+                .child("users")
+                .child(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
+                .child("user_conversations")
+                .getRef();
         //listener pentru conversatii cu tot cu mesaje
         userConvRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot userConversationSnapshot, @Nullable String previousChildName) {
                 //pentru fiecare conversatie care apare se preia cheia
-                String value = userConversationSnapshot.getValue(String.class);
+                String value = userConversationSnapshot.getKey();
                 //referinta catre conversatie din root-ul "conversations"
                 assert value != null;
                 DatabaseReference conversationsRef = database.getReference().child("conversations").child(value).getRef();
@@ -229,8 +233,7 @@ public class StarterActivity extends AppCompatActivity {
             @Override
             public void onChildRemoved(@NonNull DataSnapshot userConversationSnapshot) {
                 //pentru fiecare conversatie care dispare se preia cheia pentru a putea sterge
-                String key = userConversationSnapshot.getValue(String.class);
-                User.removeConversation(key);
+                User.removeConversation(userConversationSnapshot.getKey());
             }
 
             @Override

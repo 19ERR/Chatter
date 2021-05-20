@@ -34,4 +34,6 @@
     <string name="navigation_drawer_close">close</string>
     <string name="title_activity_send_maps">Map</string>
     <string name="title_activity_maps">Map</string>
+    <string name="leave_conversation_confirm">Paraseste conversatia</string>
+    <string name="cancel_leave_conversation">Anulare</string>
 </resources>

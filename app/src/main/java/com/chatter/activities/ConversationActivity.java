@@ -2,8 +2,10 @@ package com.chatter.activities;
 
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -14,15 +16,29 @@ import androidx.fragment.app.FragmentManager;
 
 import com.chatter.R;
 import com.chatter.classes.Conversation;
+import com.chatter.classes.Message;
 import com.chatter.classes.User;
+import com.chatter.dialogs.LeaveConversationDialog;
+import com.chatter.dialogs.RegisterDialog;
 import com.chatter.fragments.ConversationMediaFragment;
 import com.chatter.fragments.ConversationParticipantsFragment;
 import com.chatter.fragments.MessagesFragment;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 //todo: pentru a ajunge inapoi la ecranul principal e nevoie sa se apese de 2 ori inapoi
 //todo: iconita pentru drawer
-public class ConversationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class ConversationActivity
+        extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+                    LeaveConversationDialog.leaveConversationDialogListener {
     Conversation conversation;
     DrawerLayout drawerLayout;
 
@@ -43,7 +59,7 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
         Toolbar toolbar = findViewById(R.id.toolbar_conversation);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Conversatii");
+            getSupportActionBar().setTitle(conversation.getName());
         }
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -95,6 +111,16 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
                 .commit();
     }
 
+    private void showSettings(){
+
+    }
+
+    private void leaveConversation(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        LeaveConversationDialog leaveConversationDialog = LeaveConversationDialog.newInstance();
+        leaveConversationDialog.show(fragmentManager, "register_dialog");
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
@@ -107,6 +133,12 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
             case R.id.nav_item_media:
                 showMedia();
                 break;
+            case R.id.nav_item_settings:
+                showSettings();
+                break;
+            case R.id.nav_item_leave_conversation:
+                leaveConversation();
+                break;
         }
         drawerLayout.close();
         return true;
@@ -117,7 +149,25 @@ public class ConversationActivity extends AppCompatActivity implements Navigatio
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            finish();
+        }
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+    @Override
+    public void onFinishLeaveConversationDialog(Boolean confirm) {
+        if(confirm){
+            Toast.makeText(this, "Ai parasit conversatia", Toast.LENGTH_SHORT).show();
+
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
+                    .child("users")
+                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .child("user_conversations")
+                    .child(conversation.getKey());
+            finish();
+            ref.removeValue();
         }
     }
 }

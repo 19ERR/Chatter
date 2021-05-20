@@ -129,8 +129,8 @@ public class ContactListActivity extends AppCompatActivity implements  InsertCon
 
         //adaugare in lista utilizatorilor
         for (Contact c : conversationContacts) {
-            DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").push();
-            userConvRef.setValue(convRef.getKey());
+            DatabaseReference userConvRef = database.getReference("users").child(c.getKey()).child("user_conversations").child(convRef.getKey());
+            userConvRef.setValue(true);
         }
 
         DatabaseReference newConvRef = database.getReference("conversations").child(convRef.getKey());
