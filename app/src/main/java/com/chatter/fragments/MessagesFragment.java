@@ -61,6 +61,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -146,7 +148,7 @@ public class MessagesFragment extends Fragment {
                         newMessageRef.setValue(newMessage);
 
                         Media media = new Media(newMessageRef.getKey(), 1, uploadFilePath);
-                        saveMedia(media);
+                        saveMedia(getActivity().getBaseContext(), media);
                     } else {
                         // Handle failures
                         // ...
@@ -277,12 +279,20 @@ public class MessagesFragment extends Fragment {
     }
 
     //salvarea fisierelor media in baza de date room
-    private void saveMedia(Media media) {
-        ChatterDatabase db = Room.databaseBuilder(getContext(),
-                ChatterDatabase.class, "media-database").build();
+    //salvarea fisierelor media in baza de date room
+    private void saveMedia(Context context, Media media) {
 
-        MediaDAO mediaDAO = db.mediaDAO();
-        mediaDAO.insertMedia(media);
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                ChatterDatabase db = Room.databaseBuilder(context,
+                        ChatterDatabase.class, "media-database").build();
+
+                MediaDAO mediaDAO = db.mediaDAO();
+                mediaDAO.insertMedia(media);
+            }
+        });
     }
 
     @Override

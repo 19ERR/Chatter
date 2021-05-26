@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
@@ -131,8 +132,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         //verificare daca exista in room
         //daca exista afiseaza
         //daca nu exista, descarca, salveaza si afiseaza
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(new Runnable() {
+        final Bitmap[] img = new Bitmap[1];
+        Thread getImageThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Context context = viewHolder.itemView.getContext();
@@ -140,20 +141,32 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 MediaDAO mediaDAO = db.mediaDAO();
                 Media media = mediaDAO.getByLink(messages.get(position).getMediaKey());
                 List<Media> medias = mediaDAO.getAll();
-                if(media !=null){
+                if (media != null) {
                     //daca exista local
-                    Bitmap img = BitmapFactory.decodeFile(media.localPath);
-                    viewHolder.getImageView().setImageBitmap(img);
+                    img[0] = BitmapFactory.decodeFile(media.localPath);
+                    viewHolder.setImage(img[0]);
+
                 } else {
                     getMediaFromFirebase(messages.get(position).getMediaKey(), viewHolder);
                 }
 
             }
         });
+        getImageThread.start();
+        try {
+            getImageThread.join();
+            viewHolder.getImageView().setImageBitmap(img[0]);
+        } catch ( Exception e ){
+
+        }
+        /*Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+
+        });*/
         viewHolder.getImageView().setVisibility(View.VISIBLE);
 
     }
-
     private void bindSimpleText(MessageViewHolder viewHolder, int position){
         Message message = messages.get(position);
         viewHolder.getTextViewMessageSender().setText(message.getSenderEmail());
@@ -254,7 +267,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 viewHolder.getImageView().setImageBitmap(img);
 
                 Media media = new Media(imageRef.getPath(), 0, finalLocalFile.getAbsolutePath());
-                saveMedia(media, viewHolder.itemView.getContext());
+                saveMedia( viewHolder.itemView.getContext(), media);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -269,12 +282,19 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     //salvarea fisierelor media in baza de date room
-    private void saveMedia(Media media, Context context) {
-        ChatterDatabase db = Room.databaseBuilder(context,
-                ChatterDatabase.class, "media-database").build();
+    private void saveMedia(Context context, Media media) {
 
-        MediaDAO mediaDAO = db.mediaDAO();
-        mediaDAO.insertMedia(media);
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                ChatterDatabase db = Room.databaseBuilder(context,
+                        ChatterDatabase.class, "media-database").build();
+
+                MediaDAO mediaDAO = db.mediaDAO();
+                mediaDAO.insertMedia(media);
+            }
+        });
     }
 
 

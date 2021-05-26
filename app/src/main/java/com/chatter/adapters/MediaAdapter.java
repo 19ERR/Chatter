@@ -80,23 +80,32 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaHolder>
 
     @Override
     public void onBindViewHolder(MediaHolder viewHolder, int position) {
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(new Runnable() {
+        final Bitmap[] img = new Bitmap[1];
+        Thread getImageThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Context context = viewHolder.itemView.getContext();
                 ChatterDatabase db = Room.databaseBuilder(context, ChatterDatabase.class, "media-database").build();
                 MediaDAO mediaDAO = db.mediaDAO();
                 Media media = mediaDAO.getByLink(mediaLinks.get(position));
-                if(media !=null){
-                    //Bitmap img = BitmapFactory.decodeByteArray(media.data, 0, media.data.length);
-                    //viewHolder.getImageViewMediaList().setImageBitmap(img);
+                if (media != null) {
+                    //daca exista local
+                    img[0] = BitmapFactory.decodeFile(media.localPath);
+                    viewHolder.getImageViewMediaList().setImageBitmap(img[0]);
+
                 } else {
                     getMediaFromFirebase(mediaLinks.get(position), viewHolder);
                 }
 
             }
         });
+        getImageThread.start();
+        try {
+            getImageThread.join();
+            viewHolder.getImageViewMediaList().setImageBitmap(img[0]);
+        } catch ( Exception e ){
+
+        }
 
     }
 
