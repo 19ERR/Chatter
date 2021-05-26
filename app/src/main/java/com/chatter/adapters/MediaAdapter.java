@@ -89,8 +89,8 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaHolder>
                 MediaDAO mediaDAO = db.mediaDAO();
                 Media media = mediaDAO.getByLink(mediaLinks.get(position));
                 if(media !=null){
-                    Bitmap img = BitmapFactory.decodeByteArray(media.data, 0, media.data.length);
-                    viewHolder.getImageViewMediaList().setImageBitmap(img);
+                    //Bitmap img = BitmapFactory.decodeByteArray(media.data, 0, media.data.length);
+                    //viewHolder.getImageViewMediaList().setImageBitmap(img);
                 } else {
                     getMediaFromFirebase(mediaLinks.get(position), viewHolder);
                 }

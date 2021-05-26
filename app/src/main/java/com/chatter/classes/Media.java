@@ -18,12 +18,12 @@ public class Media {
     public String mediaLink;
     @ColumnInfo(name = "mediaType")
     public int mediaType;//0 - photo
-    @ColumnInfo(name = "data")
-    public byte[] data;
+    @ColumnInfo(name = "localPath")
+    public String localPath;
 
-    public Media(@NonNull String mediaLink, int mediaType, byte[] data){
+    public Media(@NonNull String mediaLink, int mediaType, String localPath){
         this.mediaLink = mediaLink;
         this.mediaType = mediaType;
-        this.data = data;
+        this.localPath = localPath;
     }
 }

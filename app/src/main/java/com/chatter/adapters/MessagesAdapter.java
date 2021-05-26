@@ -1,8 +1,14 @@
 package com.chatter.adapters;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +46,8 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -131,9 +139,10 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 ChatterDatabase db = Room.databaseBuilder(context, ChatterDatabase.class, "media-database").build();
                 MediaDAO mediaDAO = db.mediaDAO();
                 Media media = mediaDAO.getByLink(messages.get(position).getMediaKey());
+                List<Media> medias = mediaDAO.getAll();
                 if(media !=null){
                     //daca exista local
-                    Bitmap img = BitmapFactory.decodeByteArray(media.data, 0, media.data.length);
+                    Bitmap img = BitmapFactory.decodeFile(media.localPath);
                     viewHolder.getImageView().setImageBitmap(img);
                 } else {
                     getMediaFromFirebase(messages.get(position).getMediaKey(), viewHolder);
@@ -232,7 +241,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         File localFile = null;
         try {
-            localFile = File.createTempFile("images", "jpg");
+            localFile = File.createTempFile(mediaLink.replace("/images/",""), ".jpg");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -243,11 +252,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                 Bitmap img = BitmapFactory.decodeFile(finalLocalFile.getAbsolutePath());
                 viewHolder.getImageView().setImageBitmap(img);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                img.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                byte[] mediaBytes = baos.toByteArray();
 
-                Media media = new Media(imageRef.getPath(), 0, mediaBytes);
+                Media media = new Media(imageRef.getPath(), 0, finalLocalFile.getAbsolutePath());
                 saveMedia(media, viewHolder.itemView.getContext());
             }
         }).addOnFailureListener(new OnFailureListener() {
