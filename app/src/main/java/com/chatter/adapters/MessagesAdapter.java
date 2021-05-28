@@ -12,15 +12,19 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import com.chatter.DAO.ChatterDatabase;
 import com.chatter.DAO.MediaDAO;
 import com.chatter.R;
+import com.chatter.activities.ConversationActivity;
 import com.chatter.classes.Media;
 import com.chatter.classes.Message;
 import com.chatter.classes.User;
+import com.chatter.dialogs.RegisterDialog;
+import com.chatter.dialogs.ViewMediaDialog;
 import com.chatter.viewHolders.MessageViewHolder;
 import com.chatter.viewHolders.MessageWithLocationViewHolder;
 import com.chatter.viewHolders.MessageWithMediaViewHolder;
@@ -129,6 +133,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         //verificare daca exista in room
         //daca exista afiseaza
         //daca nu exista, descarca, salveaza si afiseaza
+
         final Bitmap[] img = new Bitmap[1];
         Thread getImageThread = new Thread(new Runnable() {
             @Override
@@ -138,10 +143,19 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 MediaDAO mediaDAO = db.mediaDAO();
                 Media media = mediaDAO.getByLink(messages.get(position).getMediaKey());
                 if (media != null) {
+
+                    viewHolder.getImageView().setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            FragmentManager fragmentManager = ((ConversationActivity)v.getContext()).getSupportFragmentManager();
+                            ViewMediaDialog viewMediaDialog = ViewMediaDialog.newInstance(media);
+                            viewMediaDialog.show(fragmentManager, "viewMediaDialog");
+                        }
+                    });
+
                     if(media.mediaType.contains("image")){
                         //daca exista local
                         img[0] = BitmapFactory.decodeFile(media.localPath);
-
                     } else {
                         MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
                         mediaMetadataRetriever.setDataSource(media.localPath);
@@ -200,12 +214,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm");
         viewHolder.getTextViewMessageTimestamp().setText(dateFormat.format(messages.get(position).getTimestamp()));
-
-        /*if(position != 0 ){
-            if(messages.get(position -1 ).getSenderEmail().equals(message.getSenderEmail())) {
-                viewHolder.getTextViewMessageSender().setVisibility(View.INVISIBLE);
-            }
-        }*/
 
         if (User.getEmail().equals(message.getSenderEmail())) {
             viewHolder.getTextViewMessageSender().setVisibility(View.GONE);//ascunde numele meu
@@ -284,11 +292,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             }
         });
-
-
-
-
-
     }
 
     @Override
