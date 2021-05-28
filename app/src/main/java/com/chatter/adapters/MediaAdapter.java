@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -89,10 +90,19 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaHolder>
                 MediaDAO mediaDAO = db.mediaDAO();
                 Media media = mediaDAO.getByLink(mediaLinks.get(position));
                 if (media != null) {
-                    //daca exista local
-                    img[0] = BitmapFactory.decodeFile(media.localPath);
-                    viewHolder.getImageViewMediaList().setImageBitmap(img[0]);
+                    if(media.mediaType.contains("image")){
+                        //daca exista local
+                        img[0] = BitmapFactory.decodeFile(media.localPath);
 
+                    } else {
+                        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+                        mediaMetadataRetriever.setDataSource(media.localPath);
+                        img[0] = mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST);
+                        // Load thumbnail of a specific media item.
+                        /*Bitmap thumbnail =
+                                context.getContentResolver().loadThumbnail(
+                                        Uri.parse(media.localPath), new Size(640, 480), null);*/
+                    }
                 } else {
                     getMediaFromFirebase(mediaLinks.get(position), viewHolder);
                 }

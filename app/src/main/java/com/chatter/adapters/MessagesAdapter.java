@@ -1,21 +1,17 @@
 package com.chatter.adapters;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
@@ -39,6 +35,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayOutputStream;
@@ -140,10 +137,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 ChatterDatabase db = Room.databaseBuilder(context, ChatterDatabase.class, "media-database").build();
                 MediaDAO mediaDAO = db.mediaDAO();
                 Media media = mediaDAO.getByLink(messages.get(position).getMediaKey());
-                List<Media> medias = mediaDAO.getAll();
                 if (media != null) {
-                    //daca exista local
-                    img[0] = BitmapFactory.decodeFile(media.localPath);
+                    if(media.mediaType.contains("image")){
+                        //daca exista local
+                        img[0] = BitmapFactory.decodeFile(media.localPath);
+
+                    } else {
+                        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+                        mediaMetadataRetriever.setDataSource(media.localPath);
+                        img[0] = mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST);
+                    }
                     viewHolder.setImage(img[0]);
 
                 } else {
@@ -159,14 +162,10 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } catch ( Exception e ){
 
         }
-        /*Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(new Runnable() {
-            @Override
-
-        });*/
         viewHolder.getImageView().setVisibility(View.VISIBLE);
 
     }
+
     private void bindSimpleText(MessageViewHolder viewHolder, int position){
         Message message = messages.get(position);
         viewHolder.getTextViewMessageSender().setText(message.getSenderEmail());
@@ -250,32 +249,48 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void getMediaFromFirebase(String mediaLink, MessageWithMediaViewHolder viewHolder){
         //descarcare din firebase si salvare in local
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference imageRef = storage.getReference().child(mediaLink);
+        StorageReference mediaRef = storage.getReference().child(mediaLink);
 
-        File localFile = null;
-        try {
-            localFile = File.createTempFile(mediaLink.replace("/images/",""), ".jpg");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        File finalLocalFile = localFile;
-        imageRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+        //se preiau metadatele
+        mediaRef.getMetadata().addOnSuccessListener(new OnSuccessListener<StorageMetadata>() {
             @Override
-            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                Bitmap img = BitmapFactory.decodeFile(finalLocalFile.getAbsolutePath());
-                viewHolder.getImageView().setImageBitmap(img);
+            public void onSuccess(StorageMetadata storageMetadata) {
+                String mediaType = storageMetadata.getContentType();
+                String suffix = "." + mediaType.split("/")[1];
+                File localFile = null;
+                try {
+                    localFile = File.createTempFile(mediaLink.replace("/media/",""), suffix);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-                Media media = new Media(imageRef.getPath(), 0, finalLocalFile.getAbsolutePath());
-                saveMedia( viewHolder.itemView.getContext(), media);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                //TODO:afiseaza ceva standard
+                File finalLocalFile = localFile;
+                mediaRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+
+                        Bitmap img = BitmapFactory.decodeFile(finalLocalFile.getAbsolutePath());
+                        viewHolder.getImageView().setImageBitmap(img);
+
+                        Media media = new Media(mediaRef.getPath(), mediaType, finalLocalFile.getAbsolutePath());
+                        saveMedia( viewHolder.itemView.getContext(), media);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        //TODO:afiseaza ceva standard
+                    }
+                });
+
             }
         });
+
+
+
+
+
     }
+
     @Override
     public int getItemCount() {
         return messages.size();
@@ -283,7 +298,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     //salvarea fisierelor media in baza de date room
     private void saveMedia(Context context, Media media) {
-
         Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(new Runnable() {
             @Override

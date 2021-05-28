@@ -13,4 +13,10 @@
         android:title="Send Location"
         app:showAsAction="always"/>
 
+    <item
+        android:id="@+id/itemSendVideo"
+        android:icon="@android:drawable/presence_video_busy"
+        android:title="Send Video"
+        app:showAsAction="always" />
+
 </menu>

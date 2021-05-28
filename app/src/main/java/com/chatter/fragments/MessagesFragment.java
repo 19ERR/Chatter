@@ -20,9 +20,6 @@ import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -43,9 +40,9 @@ import com.chatter.classes.Conversation;
 import com.chatter.classes.Location;
 import com.chatter.classes.Media;
 import com.chatter.classes.Message;
-import com.chatter.classes.PermissionUtils;
 import com.chatter.classes.User;
 import com.chatter.viewModels.MessagesViewModel;
+import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -58,6 +55,7 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,6 +70,7 @@ import static android.app.Activity.RESULT_OK;
 
 public class MessagesFragment extends Fragment {
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_VIDEO_CAPTURE = 2;
     static final int REQUEST_LOCATION = 10;
     static final int REQUEST_CAMERA_PERMISSION = 1;
     File uploadFile;
@@ -116,7 +115,7 @@ public class MessagesFragment extends Fragment {
         }
     }
 
-    private void uploadPhoto(String uploadFilePath) {
+    private void uploadMedia(String uploadFilePath, String mediaType) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference();
 
@@ -124,14 +123,25 @@ public class MessagesFragment extends Fragment {
         //referinta la unde se va salva mesajul
         DatabaseReference newMessageRef = database.getReference().child("messages").child(conversation.getKey()).push();
         //referinta la unde se va salva poza care va avea cheia mesajului ca denumire
-        StorageReference imageRef = storageRef.child("images").child(newMessageRef.getKey());
+        StorageReference mediaRef = storageRef.child("media").child(newMessageRef.getKey());
 
-        Bitmap imageBitmap = BitmapFactory.decodeFile(uploadFilePath);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] mediaBytes = baos.toByteArray();
+        byte[] mediaBytes = new byte[0];
+        if(mediaType.equals("image/jpeg")){
+            Bitmap imageBitmap = BitmapFactory.decodeFile(uploadFilePath);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            mediaBytes = baos.toByteArray();
+        }
+        if(mediaType.equals("video/mp4")) {
+            try {
+                FileInputStream is = new FileInputStream(uploadFilePath);
+                mediaBytes = IOUtils.toByteArray(is);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
-        UploadTask uploadTask = imageRef.putBytes(mediaBytes);
+        UploadTask uploadTask = mediaRef.putBytes(mediaBytes);
         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -140,15 +150,15 @@ public class MessagesFragment extends Fragment {
                         throw task.getException();
                     }
                     //genereaza uri
-                    return imageRef.getDownloadUrl();
+                    return mediaRef.getDownloadUrl();
                 }).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Uri downloadUri = task.getResult();
-                        Message newMessage = new Message(imageRef.getPath(), true);
+                        Message newMessage = new Message(mediaRef.getPath(), true);
                         newMessageRef.setValue(newMessage);
 
-                        Media media = new Media(newMessageRef.getKey(), 1, uploadFilePath);
-                        saveMedia(getActivity().getBaseContext(), media);
+                        Media media = new Media(newMessageRef.getKey(), mediaType, uploadFilePath);
+                        saveMediaRefference(getActivity().getBaseContext(), media);
                     } else {
                         // Handle failures
                         // ...
@@ -158,27 +168,39 @@ public class MessagesFragment extends Fragment {
         });
     }
 
-    private void sendPhoto() {
+    private void sendMedia(String mediaType) {
+        String suffix;
+        String action;
+        int requestType;
+
+        if(mediaType.contains("image")){
+            suffix = ".jpg";
+            action = MediaStore.ACTION_IMAGE_CAPTURE;
+            requestType = REQUEST_IMAGE_CAPTURE;
+        } else {
+            suffix = ".mp4";
+            action = MediaStore.ACTION_VIDEO_CAPTURE;
+            requestType = REQUEST_VIDEO_CAPTURE;
+        }
+
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED) {
-            File photoFile = null;
+            File file = null;
             try {
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                 File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                photoFile = File.createTempFile(timeStamp, ".jpg", storageDir);
+                file = File.createTempFile(timeStamp, suffix, storageDir);
             } catch (Exception e) {
                 Toast.makeText(getContext(),e.getMessage(),Toast.LENGTH_LONG).show();
             }
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(getContext(),
-                        "com.example.android.fileprovider",
-                        photoFile);
+            if (file != null) {
+                Uri uriForFile = FileProvider.getUriForFile(getContext(),"com.example.android.fileprovider", file);
 
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                Intent getMediaIntent = new Intent(action);
+                getMediaIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
                 try {
-                    uploadFile = photoFile;
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                    uploadFile = file;
+                    startActivityForResult(getMediaIntent, requestType);
                 } catch (ActivityNotFoundException e) {
                     // display error state to the user
                 }
@@ -186,28 +208,6 @@ public class MessagesFragment extends Fragment {
 
         }  else {
             ActivityCompat.requestPermissions(this.getActivity(), new String[] {Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-        }
-    }
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] grantResults) {
-        //TODO: IMPLEMENTARE PENTRU LOCATION
-        switch (requestCode) {
-            case REQUEST_CAMERA_PERMISSION:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    sendPhoto();
-                }  else {
-                    // Explain to the user that the feature is unavailable because
-                    // the features requires a permission that the user has denied.
-                    // At the same time, respect the user's decision. Don't link to
-                    // system settings in an effort to convince the user to change
-                    // their decision.
-                }
-                return;
         }
     }
 
@@ -231,6 +231,12 @@ public class MessagesFragment extends Fragment {
         inputEditTextMessage.setText("");
     }
 
+    private void sendLocationMessage(LatLng coordonates) {
+        Message newMessage = new Message(new Location(coordonates));
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
+        convRef.setValue(newMessage);
+    }
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         FloatingActionButton buttonSendMessage = view.findViewById(R.id.buttonSendMessage);
@@ -245,10 +251,13 @@ public class MessagesFragment extends Fragment {
                 public boolean onMenuItemClick(MenuItem item) {
                     switch (item.getItemId()) {
                         case R.id.itemSendPhoto:
-                            sendPhoto();
+                            sendMedia("image/jpeg");
                             break;
                         case R.id.itemSendLocation:
                             sendLocation();
+                            break;
+                        case R.id.itemSendVideo:
+                            sendMedia("video/mp4");
                             break;
                     }
                     return true;
@@ -279,9 +288,7 @@ public class MessagesFragment extends Fragment {
     }
 
     //salvarea fisierelor media in baza de date room
-    //salvarea fisierelor media in baza de date room
-    private void saveMedia(Context context, Media media) {
-
+    private void saveMediaRefference(Context context, Media media) {
         Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(new Runnable() {
             @Override
@@ -299,7 +306,10 @@ public class MessagesFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            uploadPhoto(uploadFile.getAbsolutePath());
+            uploadMedia(uploadFile.getAbsolutePath(), "image/jpeg");
+        }
+        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+            uploadMedia(uploadFile.getAbsolutePath(),"video/mp4");
         }
         if (requestCode == REQUEST_LOCATION && resultCode == 1) {
             Bundle extras = data.getExtras();
@@ -308,10 +318,5 @@ public class MessagesFragment extends Fragment {
         }
     }
 
-    private void sendLocationMessage(LatLng coordonates) {
-        Message newMessage = new Message(new Location(coordonates));
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
-        convRef.setValue(newMessage);
-    }
+
 }
