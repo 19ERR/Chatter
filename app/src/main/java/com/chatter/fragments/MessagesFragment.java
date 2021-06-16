@@ -83,9 +83,9 @@ public class MessagesFragment extends Fragment {
     Observer<ArrayList<Message>> messagesListUpdateObserver = new Observer<ArrayList<Message>>() {
         @Override
         public void onChanged(ArrayList<Message> messagesArrayList) {
-            if (conversation.getMessages().getValue().size() != 0) {
-                messagesAdapter.notifyItemInserted(conversation.getMessages().getValue().size() - 1);
-                recyclerView.smoothScrollToPosition(conversation.getMessages().getValue().size() - 1);
+            if (messagesViewModel.getMessagesLiveData().getValue().size() != 0) {
+                messagesAdapter.notifyItemInserted(messagesViewModel.getMessagesLiveData().getValue().size() - 1);
+                recyclerView.smoothScrollToPosition(messagesViewModel.getMessagesLiveData().getValue().size() - 1);
             }
         }
     };
@@ -97,10 +97,12 @@ public class MessagesFragment extends Fragment {
     public MessagesFragment(String conversationKey) {
         super(R.layout.fragment_conversation_messages);
         this.conversation = User.getConversation(conversationKey);
+
     }
 
     public static MessagesFragment newInstance(String conversationKey) {
         MessagesFragment fragment = new MessagesFragment();
+        fragment.conversation = User.getConversation(conversationKey);
         Bundle args = new Bundle();
         args.putString("conversationKey", conversationKey);
         fragment.setArguments(args);
@@ -111,8 +113,173 @@ public class MessagesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            this.conversation = User.getConversation(getArguments().getString("conversationKey"));
+            this.conversation = User.getConversation(savedInstanceState.getString("conversationKey"));
         }
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            this.conversation = User.getConversation(savedInstanceState.getString("conversationKey"));
+        }
+
+        //adauga observer pentru lista de conversatii
+        messagesViewModel = ViewModelProviders.of(this).get(MessagesViewModel.class);
+        if (this.conversation != null) {
+            messagesViewModel.setMessagesLiveData(conversation.getMessages());
+        }
+        messagesViewModel.getMessagesLiveData().observe(getViewLifecycleOwner(), messagesListUpdateObserver);
+
+        FloatingActionButton buttonSendMessage = view.findViewById(R.id.buttonSendMessage);
+        buttonSendMessage.setOnClickListener(v -> sendMessage());
+
+        FloatingActionButton buttonSendOthers = view.findViewById(R.id.buttonSendOthers);
+        buttonSendOthers.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(this.getContext(), v);
+            MenuInflater inflater = popup.getMenuInflater();
+            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.itemSendPhoto:
+                            sendMedia("image/jpeg");
+                            break;
+                        case R.id.itemSendLocation:
+                            sendLocation();
+                            break;
+                        case R.id.itemSendVideo:
+                            sendMedia("video/mp4");
+                            break;
+                    }
+                    return true;
+                }
+            });
+            inflater.inflate(R.menu.conversation_send_additional_items, popup.getMenu());
+            popup.show();
+        });
+
+        recyclerView = view.findViewById(R.id.recycle_message_list);
+        messagesAdapter = new MessagesAdapter(messagesViewModel.getMessagesLiveData().getValue());
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        recyclerView.setAdapter(messagesAdapter);
+        recyclerView.smoothScrollToPosition(messagesAdapter.getItemCount());
+        ((LinearLayoutManager) recyclerView.getLayoutManager()).setStackFromEnd(true);
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_conversation_messages, container, false);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("conversationKey", this.conversation.getKey());
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            uploadMedia(uploadFile.getAbsolutePath(), "image/jpeg");
+        }
+        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+            uploadMedia(uploadFile.getAbsolutePath(), "video/mp4");
+        }
+        if (requestCode == REQUEST_LOCATION && resultCode == 1) {
+            Bundle extras = data.getExtras();
+            LatLng location = (LatLng) extras.get("selectedLocation");
+            sendLocationMessage(location);
+        }
+    }
+
+    private void sendMedia(String mediaType) {
+        String suffix;
+        String action;
+        int requestType;
+
+        if (mediaType.contains("image")) {
+            suffix = ".jpg";
+            action = MediaStore.ACTION_IMAGE_CAPTURE;
+            requestType = REQUEST_IMAGE_CAPTURE;
+        } else {
+            suffix = ".mp4";
+            action = MediaStore.ACTION_VIDEO_CAPTURE;
+            requestType = REQUEST_VIDEO_CAPTURE;
+        }
+
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED) {
+            File file = null;
+            try {
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                file = File.createTempFile(timeStamp, suffix, storageDir);
+            } catch (Exception e) {
+                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+            if (file != null) {
+                Uri uriForFile = FileProvider.getUriForFile(getContext(), "com.example.android.fileprovider", file);
+
+                Intent getMediaIntent = new Intent(action);
+                getMediaIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
+                try {
+                    uploadFile = file;
+                    startActivityForResult(getMediaIntent, requestType);
+                } catch (ActivityNotFoundException e) {
+                    // display error state to the user
+                }
+            }
+
+        } else {
+            ActivityCompat.requestPermissions(this.getActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        }
+    }
+
+    private void sendLocation() {
+        Intent sendLocationIntent = new Intent(this.getContext(), MapsActivity.class);
+        try {
+            startActivityForResult(sendLocationIntent, REQUEST_LOCATION);
+        } catch (ActivityNotFoundException e) {
+            // display error state to the user
+        }
+    }
+
+    private void sendMessage() {
+        EditText inputEditTextMessage = getView().findViewById(R.id.editTextMessage);
+        String messageContent = inputEditTextMessage.getText().toString();
+
+        Message newMessage = new Message(messageContent);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
+        convRef.setValue(newMessage);
+        inputEditTextMessage.setText("");
+    }
+
+    private void sendLocationMessage(LatLng coordonates) {
+        Message newMessage = new Message(new Location(coordonates));
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
+        convRef.setValue(newMessage);
+    }
+
+    //salvarea fisierelor media in baza de date room
+    private void saveMediaRefference(Context context, Media media) {
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                ChatterDatabase db = Room.databaseBuilder(context,
+                        ChatterDatabase.class, "media-database").build();
+
+                MediaDAO mediaDAO = db.mediaDAO();
+                mediaDAO.insertMedia(media);
+            }
+        });
     }
 
     private void uploadMedia(String uploadFilePath, String mediaType) {
@@ -126,13 +293,13 @@ public class MessagesFragment extends Fragment {
         StorageReference mediaRef = storageRef.child("media").child(newMessageRef.getKey());
 
         byte[] mediaBytes = new byte[0];
-        if(mediaType.equals("image/jpeg")){
+        if (mediaType.equals("image/jpeg")) {
             Bitmap imageBitmap = BitmapFactory.decodeFile(uploadFilePath);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
             mediaBytes = baos.toByteArray();
         }
-        if(mediaType.equals("video/mp4")) {
+        if (mediaType.equals("video/mp4")) {
             try {
                 FileInputStream is = new FileInputStream(uploadFilePath);
                 mediaBytes = IOUtils.toByteArray(is);
@@ -167,156 +334,5 @@ public class MessagesFragment extends Fragment {
             }
         });
     }
-
-    private void sendMedia(String mediaType) {
-        String suffix;
-        String action;
-        int requestType;
-
-        if(mediaType.contains("image")){
-            suffix = ".jpg";
-            action = MediaStore.ACTION_IMAGE_CAPTURE;
-            requestType = REQUEST_IMAGE_CAPTURE;
-        } else {
-            suffix = ".mp4";
-            action = MediaStore.ACTION_VIDEO_CAPTURE;
-            requestType = REQUEST_VIDEO_CAPTURE;
-        }
-
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED) {
-            File file = null;
-            try {
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                file = File.createTempFile(timeStamp, suffix, storageDir);
-            } catch (Exception e) {
-                Toast.makeText(getContext(),e.getMessage(),Toast.LENGTH_LONG).show();
-            }
-            if (file != null) {
-                Uri uriForFile = FileProvider.getUriForFile(getContext(),"com.example.android.fileprovider", file);
-
-                Intent getMediaIntent = new Intent(action);
-                getMediaIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
-                try {
-                    uploadFile = file;
-                    startActivityForResult(getMediaIntent, requestType);
-                } catch (ActivityNotFoundException e) {
-                    // display error state to the user
-                }
-            }
-
-        }  else {
-            ActivityCompat.requestPermissions(this.getActivity(), new String[] {Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-        }
-    }
-
-    private void sendLocation() {
-        Intent sendLocationIntent = new Intent(this.getContext(), MapsActivity.class);
-        try {
-            startActivityForResult(sendLocationIntent, REQUEST_LOCATION);
-        } catch (ActivityNotFoundException e) {
-            // display error state to the user
-        }
-    }
-
-    private void sendMessage() {
-        EditText inputEditTextMessage = getView().findViewById(R.id.editTextMessage);
-        String messageContent = inputEditTextMessage.getText().toString();
-
-        Message newMessage = new Message(messageContent);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
-        convRef.setValue(newMessage);
-        inputEditTextMessage.setText("");
-    }
-
-    private void sendLocationMessage(LatLng coordonates) {
-        Message newMessage = new Message(new Location(coordonates));
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference convRef = database.getReference().child("messages").child(conversation.getKey()).push();
-        convRef.setValue(newMessage);
-    }
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        FloatingActionButton buttonSendMessage = view.findViewById(R.id.buttonSendMessage);
-        buttonSendMessage.setOnClickListener(v -> sendMessage());
-
-        FloatingActionButton buttonSendOthers = view.findViewById(R.id.buttonSendOthers);
-        buttonSendOthers.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(this.getContext(), v);
-            MenuInflater inflater = popup.getMenuInflater();
-            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    switch (item.getItemId()) {
-                        case R.id.itemSendPhoto:
-                            sendMedia("image/jpeg");
-                            break;
-                        case R.id.itemSendLocation:
-                            sendLocation();
-                            break;
-                        case R.id.itemSendVideo:
-                            sendMedia("video/mp4");
-                            break;
-                    }
-                    return true;
-                }
-            });
-            inflater.inflate(R.menu.conversation_send_additional_items, popup.getMenu());
-            popup.show();
-        });
-
-        recyclerView = view.findViewById(R.id.recycle_message_list);
-        messagesAdapter = new MessagesAdapter(conversation.getMessages().getValue());
-
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
-        recyclerView.setAdapter(messagesAdapter);
-        recyclerView.smoothScrollToPosition(messagesAdapter.getItemCount());
-        ((LinearLayoutManager) recyclerView.getLayoutManager()).setStackFromEnd(true);
-        //adauga observer pentru lista de conversatii
-        messagesViewModel = ViewModelProviders.of(this).get(MessagesViewModel.class);
-        messagesViewModel.setMessagesLiveData(conversation.getMessages());
-        messagesViewModel.getMessagesLiveData().observe(getViewLifecycleOwner(), messagesListUpdateObserver);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_conversation_messages, container, false);
-    }
-
-    //salvarea fisierelor media in baza de date room
-    private void saveMediaRefference(Context context, Media media) {
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                ChatterDatabase db = Room.databaseBuilder(context,
-                        ChatterDatabase.class, "media-database").build();
-
-                MediaDAO mediaDAO = db.mediaDAO();
-                mediaDAO.insertMedia(media);
-            }
-        });
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            uploadMedia(uploadFile.getAbsolutePath(), "image/jpeg");
-        }
-        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
-            uploadMedia(uploadFile.getAbsolutePath(),"video/mp4");
-        }
-        if (requestCode == REQUEST_LOCATION && resultCode == 1) {
-            Bundle extras = data.getExtras();
-            LatLng location = (LatLng) extras.get("selectedLocation");
-            sendLocationMessage(location);
-        }
-    }
-
 
 }

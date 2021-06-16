@@ -49,6 +49,7 @@ public class ConversationParticipantsFragment extends Fragment {
 
     public static ConversationParticipantsFragment newInstance(String conversationKey) {
         ConversationParticipantsFragment fragment = new ConversationParticipantsFragment();
+        fragment.conversation = User.getConversation(conversationKey);
         Bundle args = new Bundle();
         args.putString("conversationKey", conversationKey);
         fragment.setArguments(args);
@@ -58,13 +59,16 @@ public class ConversationParticipantsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            this.conversation = User.getConversation(getArguments().getString("conversationKey"));
+        if (savedInstanceState != null) {
+            this.conversation = User.getConversation(savedInstanceState.getString("conversationKey"));
         }
     }
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            this.conversation = User.getConversation(savedInstanceState.getString("conversationKey"));
+        }
         recyclerView = view.findViewById(R.id.recycle_conversation_participants_list);
         contactsAdapter = new ContactsAdapter(conversation.getParticipantsList());
 
@@ -83,5 +87,11 @@ public class ConversationParticipantsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_conversation_participants, container, false);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("conversationKey", this.conversation.getKey());
     }
 }
